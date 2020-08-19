@@ -19,3 +19,4 @@ public class WeatherData {
     Image image;
     Date date;
 }
+
