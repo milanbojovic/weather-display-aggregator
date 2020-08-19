@@ -25,3 +25,5 @@ hs_err_pid*
 #Intelij
 *.iml
 .idea
+
+/docker/docker-app/target/
