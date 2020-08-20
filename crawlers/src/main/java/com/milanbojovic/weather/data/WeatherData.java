@@ -16,7 +16,7 @@ public class WeatherData {
     double windSpeed;
     String windDirection;
     String description;
-    Image image;
+    String image;
     Date date;
 }
 

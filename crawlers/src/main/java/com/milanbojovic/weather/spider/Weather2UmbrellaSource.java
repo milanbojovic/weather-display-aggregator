@@ -1,14 +1,10 @@
 package com.milanbojovic.weather.spider;
 
 import com.sun.istack.internal.NotNull;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.io.IOException;
-import java.net.URL;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -126,28 +122,53 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return dayDescription.text();
     }
 
-    //TODO Fix me please :) boom not working
     @Override
-    public Image getImage() {
+    public String getImageUrl() {
         Element today = getCurrentWeekDay();
         Element dayImage = today.getElementsByClass("day_icon").get(0);
-        String imageUrl = dayImage.child(0).attr("src");
-
-        Image image = null;
-        try {
-            URL url = new URL(imageUrl);
-            image = ImageIO.read(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return image;
+        return dayImage.child(0).attr("src");
     }
 
     @Override
     protected Date getDate() {
-        //TODO Serbian date to Java date !
-        //String current_date = getCurrentWeather().getElementById("current_date").text();
+        String strDate = getCurrentWeather().getElementById("current_date").text();
+        String[] split = strDate.split(" ");
 
-        return Date.from(Instant.now());
+        int year = Integer.parseInt(split[split.length -1]);
+        int month = monthToNumber(split[split.length -3]);
+        int day = Integer.parseInt(StringUtils.remove(split[split.length -2],"."));
+
+        return new Date(year, month, day);
+    }
+
+    private int monthToNumber(String month) {
+        switch (month.toLowerCase()) {
+            case "jan":
+                return 0;
+            case "feb":
+                return 1;
+            case "mar":
+                return 2;
+            case "apr":
+                return 3;
+            case "maj":
+                return 4;
+            case "jun":
+                return 5;
+            case "jul":
+                return 6;
+            case "avg":
+                return 7;
+            case "sep":
+                return 8;
+            case "okt":
+                return 9;
+            case "nov":
+                return 10;
+            case "dec":
+                return 11;
+            default:
+                return 0;
+        }
     }
 }

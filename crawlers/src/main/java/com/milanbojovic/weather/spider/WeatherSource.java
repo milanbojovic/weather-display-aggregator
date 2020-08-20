@@ -5,7 +5,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -32,8 +31,7 @@ public abstract class WeatherSource {
         weatherData.setWindSpeed(this.getWindSpeed());
         weatherData.setWindDirection(this.getWindDirection());
         weatherData.setDescription(this.getDescription());
-        weatherData.setImage(this.getImage());
-
+        weatherData.setImage(this.getImageUrl());
         weatherData.setRealFeel(this.getRealFeel());
         weatherData.setHumidity(this.getHumidity());
         weatherData.setPressure(this.getPressure());
@@ -81,7 +79,7 @@ public abstract class WeatherSource {
 
     public abstract String getDescription();
 
-    public abstract Image getImage();
+    public abstract String getImageUrl();
 
     protected abstract Date getDate();
 }
