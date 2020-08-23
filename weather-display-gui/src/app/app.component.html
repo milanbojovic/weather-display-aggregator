@@ -1,0 +1,21 @@
+<div class="container">
+  <div class="jumbotron">
+    <h1>Welcome to Weather display application</h1>
+  </div>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a id="aque" class="nav-link" [ngClass]="{'active': activeWeather === 'aque'}" [routerLink]=""
+         (click)="passTheSalt('aque')">AQUE weather</a>
+    </li>
+    <li class="nav-item">
+      <a id="aque" class="nav-link" [ngClass]="{'active': activeWeather === 'umbrella'}"  [routerLink]=""
+         (click)="passTheSalt('umbrella')" >Weather to umbrella</a>
+    </li>
+    <li class="nav-item">
+      <a id="rhmtz" class="nav-link" [ngClass]="{'active': activeWeather === 'rhmtz'}"  [routerLink]=""
+         (click)="passTheSalt('rhmtz')">RHMTZ</a>
+    </li>
+  </ul>
+  <weather-component [customTitle]="activeWeather"></weather-component>
+</div>
+<router-outlet></router-outlet>
