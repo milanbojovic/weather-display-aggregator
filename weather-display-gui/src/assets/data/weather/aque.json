@@ -1,0 +1,13 @@
+{
+  "minTemp": 21,
+  "maxTemp": 32,
+  "realFeel": 30,
+  "humidity": 46,
+  "pressure": 1012,
+  "uvIndex": 6,
+  "windSpeed": 1,
+  "windDirection": "N",
+  "description": "AQUA Sunčano i vrlo toplo, mirno bez vetra",
+  "imageUrl": "https://www.weather2umbrella.com/wp-content/themes/w2u/image/svg/weather-icons/d02.svg",
+  "date": 61556277600000
+}

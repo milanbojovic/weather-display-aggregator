@@ -1,4 +1,6 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { WeatherInfo } from "../../model/weather-info.model";
 
 @Component({
   selector: 'weather-component',
@@ -7,13 +9,28 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class WeatherComponent implements OnInit {
 
+    constructor(private http: HttpClient) { }
+
     @Input()
     customTitle: string;
 
-  constructor() { }
+    weatherInfo: WeatherInfo;
 
-  ngOnInit(): void {
-    this.customTitle = "test 1";
-  }
+    ngOnInit(): void {
+        this.customTitle = "aque";
+        let apiUrl = './assets/data/weather/' + this.customTitle + '.json';
+        let test = this.http.get(apiUrl)
+        .subscribe((data: WeatherInfo)=>{
+            this.weatherInfo = data;
+        });
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        let apiUrl = './assets/data/weather/' + this.customTitle + '.json';
+                let test = this.http.get(apiUrl)
+                .subscribe((data: WeatherInfo)=>{
+                    this.weatherInfo = data;
+                });
+      }
 
 }
