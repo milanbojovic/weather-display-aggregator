@@ -1,11 +1,12 @@
 package com.milanbojovic.weather.data;
 
+import lombok.Builder;
 import lombok.Data;
 
-import java.awt.*;
 import java.util.Date;
 
 @Data
+@Builder
 public class WeatherData {
     int minTemp;
     int maxTemp;
@@ -16,7 +17,7 @@ public class WeatherData {
     double windSpeed;
     String windDirection;
     String description;
-    String image;
+    String imageUrl;
     Date date;
 }
 
