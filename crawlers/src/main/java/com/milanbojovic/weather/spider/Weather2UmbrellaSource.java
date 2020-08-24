@@ -1,14 +1,15 @@
 package com.milanbojovic.weather.spider;
 
-import com.sun.istack.internal.NotNull;
+import com.milanbojovic.weather.data.WeatherData;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Weather2UmbrellaSource extends WeatherSource {
     static final String URL = "https://www.weather2umbrella.com";
@@ -16,24 +17,46 @@ public class Weather2UmbrellaSource extends WeatherSource {
     static final String SEVEN_DAY_FORECAST = "/7-dana";
     static final String CURRENT_WEATHER = "/trenutno";
 
-    public static List<String> createList() {
-        ArrayList<String> weather2UmbrellaUris = new ArrayList<>();
-        weather2UmbrellaUris.add(URL + CITY + SEVEN_DAY_FORECAST);
-        weather2UmbrellaUris.add(URL + CITY + CURRENT_WEATHER);
-        return weather2UmbrellaUris;
-    }
+    private final Map<String, Document> documents;
 
     public Weather2UmbrellaSource() {
-        super(Weather2UmbrellaSource.createList());
+        documents = createUriList().stream()
+                .map(this::uriDocTuple)
+                .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
+        weatherData = initializeWeatherData();
     }
 
-    @Override
-    public Document getCurrentWeather() {
+    private List<String> createUriList() {
+        return Arrays.asList(
+                URL + CITY + SEVEN_DAY_FORECAST,
+                URL + CITY + CURRENT_WEATHER
+        );
+    }
+
+    private ImmutablePair<String, Document> uriDocTuple(String url) {
+        Document document = null;
+        try {
+            document = Jsoup.connect(url).get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ImmutablePair<>("/" + getCityPath(url) + "/" + getResourcePath(url), document);
+    }
+
+
+    private String getResourcePath(String url) {
+        return url.split("/")[url.split("/").length - 1];
+    }
+
+    private String getCityPath(String url) {
+        return url.split("/")[url.split("/").length - 2];
+    }
+
+    private Document getCurrentWeather() {
         return documents.get(CITY + CURRENT_WEATHER);
     }
 
-    @Override
-    public Document get7DayWeather() {
+    private Document get7DayWeather() {
         return documents.get(CITY + SEVEN_DAY_FORECAST);
     }
 
@@ -44,7 +67,7 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return parseTemperature(minTemperatureElem);
     }
 
-    private int parseTemperature(@NotNull Element dayMinTemp) {
+    private int parseTemperature(Element dayMinTemp) {
         String strTemp = Optional.ofNullable(dayMinTemp.text()).orElse("0°");
         return Integer.parseInt(strTemp.substring(0, strTemp.indexOf("°")));
     }
@@ -73,7 +96,7 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return parseHumidity(humidity);
     }
 
-    private int parseHumidity(@NotNull Element humidity) {
+    private int parseHumidity(Element humidity) {
         String strHumidity = Optional.ofNullable(humidity.text()).orElse("0%");
         return Integer.parseInt(strHumidity.substring(0, strHumidity.indexOf("%")));
     }
@@ -84,7 +107,7 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return parseAirPressure(airPresure);
     }
 
-    private int parseAirPressure(@NotNull Element airPressure) {
+    private int parseAirPressure(Element airPressure) {
         String strPressure = Optional.ofNullable(airPressure.text()).orElse("0.0 mbar");
         return Integer.parseInt(strPressure.substring(0, strPressure.indexOf(" mbar")));
     }
@@ -103,7 +126,7 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return parseWindSpeedTemperature(dayWindSpeed);
     }
 
-    private double parseWindSpeedTemperature(@NotNull Element windSpeed) {
+    private double parseWindSpeedTemperature(Element windSpeed) {
         String strTemp = Optional.ofNullable(windSpeed.text()).orElse("0.0 m/s");
         return Double.parseDouble(strTemp.substring(0, strTemp.indexOf(" m/s")));
     }
@@ -130,7 +153,7 @@ public class Weather2UmbrellaSource extends WeatherSource {
     }
 
     @Override
-    protected Date getDate() {
+    public Date getDate() {
         String strDate = getCurrentWeather().getElementById("current_date").text();
         String[] split = strDate.split(" ");
 
