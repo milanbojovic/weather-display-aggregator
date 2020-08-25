@@ -18,7 +18,7 @@ export class WeatherComponent implements OnInit {
 
     ngOnInit(): void {
         this.customTitle = "aque";
-        let apiUrl = './assets/data/weather/' + this.customTitle + '.json';
+        let apiUrl = 'http://localhost:8080/rhmdz';
         let test = this.http.get(apiUrl)
         .subscribe((data: WeatherInfo)=>{
             this.weatherInfo = data;
@@ -32,5 +32,4 @@ export class WeatherComponent implements OnInit {
                     this.weatherInfo = data;
                 });
       }
-
 }

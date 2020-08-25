@@ -1,6 +1,5 @@
 package com.milanbojovic.weather.spider;
 
-import com.milanbojovic.weather.data.WeatherData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jsoup.Jsoup;
