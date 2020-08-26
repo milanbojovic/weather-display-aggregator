@@ -14,11 +14,11 @@ export class WeatherComponent implements OnInit {
     @Input()
     customTitle: string;
 
-    weatherInfo: WeatherInfo;
+    weatherInfo: WeatherInfo = null;
 
     ngOnInit(): void {
-        this.customTitle = "aque";
-        let apiUrl = 'http://localhost:8080/rhmdz';
+        this.customTitle = "accuw";
+        let apiUrl = 'http://localhost:8080/' + this.customTitle;
         let test = this.http.get(apiUrl)
         .subscribe((data: WeatherInfo)=>{
             this.weatherInfo = data;
@@ -26,7 +26,7 @@ export class WeatherComponent implements OnInit {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        let apiUrl = './assets/data/weather/' + this.customTitle + '.json';
+        let apiUrl = 'http://localhost:8080/' + this.customTitle;
                 let test = this.http.get(apiUrl)
                 .subscribe((data: WeatherInfo)=>{
                     this.weatherInfo = data;

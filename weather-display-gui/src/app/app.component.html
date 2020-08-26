@@ -4,18 +4,18 @@
   </div>
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a id="aque" class="nav-link" [ngClass]="{'active': activeWeather === 'aque'}" [routerLink]=""
-         (click)="passTheSalt('aque')">AQUE weather</a>
+      <a id="accuw" class="nav-link" [ngClass]="{'active': accuWeather === 'accuw'}" [routerLink]=""
+         (click)="passTheSalt('accuw')">AccuWeather.com</a>
     </li>
     <li class="nav-item">
-      <a id="aque" class="nav-link" [ngClass]="{'active': activeWeather === 'umbrella'}"  [routerLink]=""
-         (click)="passTheSalt('umbrella')" >Weather to umbrella</a>
+      <a id="w2u" class="nav-link" [ngClass]="{'active': accuWeather === 'w2u'}" [routerLink]=""
+         (click)="passTheSalt('w2u')" >Weather to umbrella</a>
     </li>
     <li class="nav-item">
-      <a id="rhmtz" class="nav-link" [ngClass]="{'active': activeWeather === 'rhmtz'}"  [routerLink]=""
-         (click)="passTheSalt('rhmtz')">RHMTZ</a>
+      <a id="rhmdz" class="nav-link" [ngClass]="{'active': accuWeather === 'rhmdz'}" [routerLink]=""
+         (click)="passTheSalt('rhmdz')">RHMDZ</a>
     </li>
   </ul>
-  <weather-component [customTitle]="activeWeather"></weather-component>
+  <weather-component [customTitle]="accuWeather"></weather-component>
 </div>
 <router-outlet></router-outlet>
