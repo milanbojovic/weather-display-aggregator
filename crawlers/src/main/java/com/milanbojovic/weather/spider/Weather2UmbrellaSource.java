@@ -42,7 +42,6 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return new ImmutablePair<>("/" + getCityPath(url) + "/" + getResourcePath(url), document);
     }
 
-
     private String getResourcePath(String url) {
         return url.split("/")[url.split("/").length - 1];
     }
@@ -55,7 +54,7 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return documents.get(CITY + CURRENT_WEATHER);
     }
 
-    private Document get7DayWeather() {
+    private Document getSevenDayWeather() {
         return documents.get(CITY + SEVEN_DAY_FORECAST);
     }
 
@@ -72,7 +71,7 @@ public class Weather2UmbrellaSource extends WeatherSource {
     }
 
     private Element getCurrentWeekDay() {
-        Element sevenDayTable = get7DayWeather().getElementById("seven_days").child(1).child(0).child(0);
+        Element sevenDayTable = getSevenDayWeather().getElementById("seven_days").child(1).child(0).child(0);
         return sevenDayTable.getElementsByClass("day_wrap").get(0);
     }
 
