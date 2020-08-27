@@ -7,6 +7,7 @@ import akka.http.javadsl.server.Route;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.milanbojovic.weather.spider.AccuWeatherSource;
+import com.milanbojovic.weather.spider.RhmdzSource;
 import com.milanbojovic.weather.spider.Weather2UmbrellaSource;
 
 import java.io.IOException;
@@ -64,7 +65,7 @@ public class Server {
                                 get(() ->
                                 {
                                     try {
-                                        return complete( new ObjectMapper().writeValueAsString(new Weather2UmbrellaSource().getWeatherData()));
+                                        return complete( new ObjectMapper().writeValueAsString(new RhmdzSource().getWeatherData()));
                                     } catch (JsonProcessingException e) {
                                         e.printStackTrace();
                                     }

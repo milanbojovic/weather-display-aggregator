@@ -1,15 +1,15 @@
+<div class="jumbotron">
+  <h2>Веб апликација за прикупљање, агрегацију и приказивање података о временској прогнози</h2>
+</div>
 <div class="container">
-  <div class="jumbotron">
-    <h1>Welcome to Weather display application</h1>
-  </div>
   <ul class="nav nav-tabs">
     <li class="nav-item">
       <a id="accuw" class="nav-link" [ngClass]="{'active': accuWeather === 'accuw'}" [routerLink]=""
-         (click)="passTheSalt('accuw')">AccuWeather.com</a>
+         (click)="passTheSalt('accuw')">AccuWeather</a>
     </li>
     <li class="nav-item">
       <a id="w2u" class="nav-link" [ngClass]="{'active': accuWeather === 'w2u'}" [routerLink]=""
-         (click)="passTheSalt('w2u')" >Weather to umbrella</a>
+         (click)="passTheSalt('w2u')" >Weather2Umbrella</a>
     </li>
     <li class="nav-item">
       <a id="rhmdz" class="nav-link" [ngClass]="{'active': accuWeather === 'rhmdz'}" [routerLink]=""
@@ -17,5 +17,8 @@
     </li>
   </ul>
   <weather-component [customTitle]="accuWeather"></weather-component>
+</div>
+<div class="jumbotron">
+  <h2>ETF Beograd Septembar 2020.</h2>
 </div>
 <router-outlet></router-outlet>

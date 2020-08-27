@@ -18,7 +18,7 @@ public class RhmdzSource extends  WeatherSource {
     static final String URL = "http://hidmet.gov.rs";
     static final String PATH = "/ciril";
 
-    static final String FIVE_DAY_FORECAST = "/prognoza/index.php";
+    static final String THREE_DAY_FORECAST = "/prognoza/index.php";
     static final String CURRENT_WEATHER = "/osmotreni/index.php";
     static final String UV_INDEX = "/prognoza/uv1.php";
 
@@ -33,7 +33,7 @@ public class RhmdzSource extends  WeatherSource {
 
     private List<String> createUriList() {
         return Arrays.asList(
-                URL + PATH + FIVE_DAY_FORECAST,
+                URL + PATH + THREE_DAY_FORECAST,
                 URL + PATH + CURRENT_WEATHER,
                 URL + PATH + UV_INDEX
         );
@@ -58,7 +58,7 @@ public class RhmdzSource extends  WeatherSource {
     }
 
     private Document getFiveDayWeather() {
-        return documents.get( PATH + FIVE_DAY_FORECAST);
+        return documents.get( PATH + THREE_DAY_FORECAST);
     }
 
     private Document getUvIndexWeather() {
@@ -88,7 +88,7 @@ public class RhmdzSource extends  WeatherSource {
     @Override
     public int getMaxTemp() {
         Node city = getBelgradeFromFiveDayForecast();
-        Node node = city.childNodes().get(5).childNode(0);
+        Node node = city.childNodes().get(3).childNode(0);
         return Integer.parseInt(node.toString());
     }
 

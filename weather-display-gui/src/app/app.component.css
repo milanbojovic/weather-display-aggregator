@@ -1,0 +1,11 @@
+body {
+  background:#000000;
+  height:auto;
+}
+
+div.jumbotron {
+  background-color: black;
+  color: white;
+  max-width: 100%;
+  text-align: center;
+}

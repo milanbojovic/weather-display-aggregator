@@ -1,68 +1,59 @@
 <div *ngIf="weatherInfo !== undefined && weatherInfo !== null">
-  <h2>{{customTitle}} - {{weatherInfo.description}}</h2>
 
   <table class="table table-striped">
     <thead>
     <tr>
-      <th scope="col">Number</th>
-      <th scope="col">Propetry name </th>
-      <th scope="col">Information</th>
+      <td scope="col">Из</td>
+      <td scope="col">{{getUrl(customTitle.toLocaleLowerCase())}}</td>
+    </tr>
+    <tr>
+      <th scope="col">Информације о времену</th>
+      <th scope="col">Вредности</th>
     </tr>
     </thead>
     <tbody>
     <tr>
-      <th scope="row">1</th>
-      <td>minTemp</td>
+      <td>Минимална температура</td>
       <td>{{weatherInfo.minTemp}}</td>
     </tr>
     <tr>
-      <th scope="row">2</th>
-      <td>maxTemp</td>
+      <td>Максимална температура</td>
       <td>{{weatherInfo.maxTemp}}</td>
     </tr>
     <tr>
-      <th scope="row">3</th>
-      <td>realFeel</td>
+      <td>Субјективни осћај</td>
       <td>{{weatherInfo.realFeel}}</td>
     </tr>
     <tr>
-      <th scope="row">4</th>
-      <td>humidity</td>
+      <td>Влажност ваздуха</td>
       <td>{{weatherInfo.humidity}}</td>
     </tr>
     <tr>
-      <th scope="row">5</th>
-      <td>pressure</td>
+      <td>Ваздушни притисак</td>
       <td>{{weatherInfo.pressure}}</td>
     </tr>
     <tr>
-      <th scope="row">6</th>
-      <td>Larry</td>
+      <td>Ув индекс</td>
       <td>{{weatherInfo.uvIndex}}</td>
     </tr>
     <tr>
-      <th scope="row">7</th>
-      <td>windSpeed</td>
+      <td>Брзина ветра</td>
       <td>{{weatherInfo.windSpeed}}</td>
     </tr>
     <tr>
-      <th scope="row">8</th>
-      <td>windDirection</td>
+      <td>Смер ветра</td>
       <td>{{weatherInfo.windDirection}}</td>
     </tr>
     <tr>
-      <th scope="row">9</th>
-      <td>description</td>
+      <td>Опис прогнозе</td>
       <td>{{weatherInfo.description}}</td>
     </tr>
     <tr>
-      <th scope="row">10</th>
-      <td>date</td>
+      <td>Датум</td>
       <td>{{weatherInfo.date | date}}</td>
     </tr>
     <tr>
-      <th scope="row">11</th>
-      <td>imageUrl</td>
+      <td>Слика</td>
       <td><img class="images" [src]="weatherInfo.imageUrl"/></td>
     </tr>
     </tbody>

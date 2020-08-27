@@ -32,4 +32,21 @@ export class WeatherComponent implements OnInit {
                     this.weatherInfo = data;
                 });
       }
+
+  getUrl(provider: string): string {
+    switch (provider) {
+      case 'accuw': {
+        return 'https://www.accuweather.com/';
+        break;
+      }
+      case 'w2u': {
+        return 'https://www.weather2umbrella.com/';
+        break;
+      }
+      case 'rhmdz': {
+        return 'http://www.hidmet.gov.rs/';
+        break;
+      }
+    }
+  }
 }
