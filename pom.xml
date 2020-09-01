@@ -11,6 +11,7 @@
 
     <modules>
         <module>docker</module>
+        <module>cyrillic-latin-convertor</module>
         <module>gui-app</module>
         <module>crawlers</module>
     </modules>

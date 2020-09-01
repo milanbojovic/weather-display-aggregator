@@ -1,10 +1,10 @@
 package com.milanbojovic.weather.spider;
 
 import com.milanbojovic.weather.data.CurrentWeather;
-import com.milanbojovic.weather.data.WeatherData;
 import com.milanbojovic.weather.data.DailyForecast;
-import com.milanbojovic.weather.util.Util;
+import com.milanbojovic.weather.data.WeatherData;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.cyrlat.CyrillicLatinConverter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -28,6 +28,10 @@ public abstract class AbstractWeatherSource {
     public AbstractWeatherSource(String provider) {
         weatherProvider = provider;
         weatherDataMap = new HashMap<>();
+    }
+
+    public Map<String, WeatherData> getWeatherDataMap() {
+        return weatherDataMap;
     }
 
     protected void persistAllWeatherDataToMap(List<String> cities) {
@@ -104,10 +108,11 @@ public abstract class AbstractWeatherSource {
         int year = Integer.parseInt(dateStr.split("-")[0]);
         int month = Integer.parseInt(dateStr.split("-")[1]);
         int day = Integer.parseInt(dateStr.split("-")[2]);
-        return Util.translateCityNameToCyrilic.get(LocalDate.of(year, month, day)
+        return CyrillicLatinConverter.latinToCyrillic(LocalDate.of(year, month, day)
                 .getDayOfWeek()
                 .toString()
-                .toLowerCase());
+                .toLowerCase()
+        );
     }
 
     protected abstract Elements getWeeklyForecast(String city);

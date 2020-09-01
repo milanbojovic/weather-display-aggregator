@@ -4,19 +4,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Util {
-    public static Map<String, String> translateDayToCyrilic;
-    public static Map<String, String> translateCityNameToCyrilic;
+    public static final String CITY_BEOGRAD = "beograd";
+    public static final String CITY_NOVI_SAD = "novi sad";
+    public static final String CITY_KRAGUJEVAC = "kragujevac";
+    public static final String CITY_ZLATIBOR = "zlatibor";
+    public static final String CITY_PRISTINA = "pristina";
+    public static final String CITY_NIS = "nis";
+
+    public static Map<String, String> translateDayToRsCyrilic;
     public static Map<String, Integer> monthNumberMap;
-    public static Map<String, Integer> locationIdMap;
+    public static Map<String, Integer> accuWeatherLocationIdMap;
+    public static Map<String, Integer> rhmzLocationIdMap;
 
     static {
-        translateCityNameToCyrilic = initDayTranslationCyrilic();
-        translateDayToCyrilic = initCityTranslationCyrilic();
+        translateDayToRsCyrilic = initDayTranslationCyrilic();
         monthNumberMap = initMonthNumberMap();
-        locationIdMap = initCityLocationIdMap();
+        accuWeatherLocationIdMap = initCityLocationIdMap();
+        rhmzLocationIdMap = initCityLocationIdMapRhmz();
     }
 
-     private static HashMap<String, String> initDayTranslationCyrilic() {
+    private Util() {}
+
+    private static HashMap<String, String> initDayTranslationCyrilic() {
         HashMap<String, String> map = new HashMap<>();
         map.put("monday", "Понедељак");
         map.put("tuesday", "Уторак");
@@ -25,17 +34,6 @@ public class Util {
         map.put("friday", "Петак");
         map.put("saturday", "Субота");
         map.put("sunday", "Недеља");
-        return map;
-    }
-
-    private static HashMap<String, String> initCityTranslationCyrilic() {
-        HashMap<String, String> map = new HashMap<>();
-        map.put("beograd", "Београд");
-        map.put("novi sad", "Нови Сад");
-        map.put("kragujevac", "Крагујевац");
-        map.put("zlatibor", "Златибор");
-        map.put("pristina", "Приштина");
-        map.put("nis", "Ниш");
         return map;
     }
 
@@ -50,10 +48,7 @@ public class Util {
         map.put("apr", 4);
         map.put("april", 4);
         map.put("maj", 5);
-        map.put("maj", 5);
         map.put("jun", 6);
-        map.put("jun", 6);
-        map.put("jul", 7);
         map.put("jul", 7);
         map.put("avgust", 8);
         map.put("avg", 8);
@@ -70,12 +65,23 @@ public class Util {
 
     private static HashMap<String, Integer> initCityLocationIdMap() {
         HashMap<String, Integer> map = new HashMap<>();
-        map.put("beograd", 298198);
-        map.put("novi sad", 298486);
-        map.put("kragujevac", 301638);
-        map.put("zlatibor", 1691350);
-        map.put("pristina", 1672284);
-        map.put("nis", 299758);
+        map.put(CITY_BEOGRAD, 298198);
+        map.put(CITY_NOVI_SAD, 298486);
+        map.put(CITY_KRAGUJEVAC, 301638);
+        map.put(CITY_ZLATIBOR, 1691350);
+        map.put(CITY_PRISTINA, 1672284);
+        map.put(CITY_NIS, 299758);
+        return map;
+    }
+
+    private static HashMap<String, Integer> initCityLocationIdMapRhmz() {
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put(CITY_BEOGRAD, 13274);
+        map.put(CITY_NOVI_SAD, 13168);
+        map.put(CITY_KRAGUJEVAC, 13278);
+        map.put(CITY_ZLATIBOR, 13367);
+        map.put(CITY_PRISTINA, 13481);
+        map.put(CITY_NIS, 13388);
         return map;
     }
 }

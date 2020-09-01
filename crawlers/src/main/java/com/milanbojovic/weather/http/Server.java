@@ -1,137 +1,136 @@
-//package com.milanbojovic.weather.http;
-//
-//import akka.actor.ActorSystem;
-//import akka.http.javadsl.Http;
-//import akka.http.javadsl.ServerBinding;
-//import akka.http.javadsl.model.HttpHeader;
-//import akka.http.javadsl.model.HttpMethods;
-//import akka.http.javadsl.model.HttpResponse;
-//import akka.http.javadsl.model.StatusCodes;
-//import akka.http.javadsl.model.headers.*;
-//import akka.http.javadsl.server.Directives;
-//import akka.http.javadsl.server.Route;
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.milanbojovic.weather.spider.AccuWeatherSource;
-//import com.milanbojovic.weather.spider.RhmzSource;
-//import com.milanbojovic.weather.spider.Weather2UmbrellaSource;
-//import com.milanbojovic.weather.util.ConstHelper;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//
-//import java.io.IOException;
-//import java.util.ArrayList;
-//import java.util.Arrays;
-//import java.util.List;
-//import java.util.concurrent.CompletionStage;
-//import java.util.stream.StreamSupport;
-//
-//import static akka.http.javadsl.server.Directives.*;
-//
-//public class Server {
-//    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
-//    private final RhmzSource rhmzSource;
-//    private final AccuWeatherSource accuWeatherSource;
-//    private final Weather2UmbrellaSource weather2UmbrellaSource;
-//
-//    public Server() throws IOException {
-//        LOGGER.debug("Creating ActorSystem.");
-//        ActorSystem system = ActorSystem.create("routes");
-//        final Http http = Http.get(system);
-//
-//        List<String> citiesList = Arrays.asList("Beograd", "Nis", "Kragujevac");
-//        rhmzSource = new RhmzSource(citiesList);
-//        accuWeatherSource = new AccuWeatherSource(citiesList);
-//        weather2UmbrellaSource = new Weather2UmbrellaSource(citiesList);
-//
-//        final CompletionStage<ServerBinding> binding = startHttpServer(http);
-//
-//        LOGGER.info("Akka HTTP Server online at http://" + ConstHelper.SERVER_HOST + ":" + ConstHelper.SERVER_PORT);
-//        LOGGER.info("Press RETURN to stop...");
-//        System.in.read();
-//
-//        stopHttpServer(system, binding);
-//        LOGGER.info("Akka HTTP Server - stopped");
-//    }
-//
-//    private void stopHttpServer(ActorSystem system, CompletionStage<ServerBinding> binding) {
-//        LOGGER.debug("Stopping AKKA HTTP Server");
-//        binding
-//                .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
-//                .thenAccept(unbound -> system.terminate()); // and shutdown when done
-//    }
-//
-//    private CompletionStage<ServerBinding> startHttpServer(Http http) {
-//        LOGGER.debug("Starting Akka HTTP Server");
-//        return http.newServerAt(ConstHelper.SERVER_HOST, ConstHelper.SERVER_PORT)
-//                .bind(createRoutes());
-//    }
-//
-//    private Route createRoutes() {
-//        LOGGER.debug("Creating routes");
-//        return Directives.optionalHeaderValueByType(AccessControlRequestHeaders.class, corsRequestHeaders -> {
-//            final ArrayList<HttpHeader> newHeaders = new ArrayList<>(createCorsHttpHeaders());
-//            corsRequestHeaders.ifPresent(toAdd ->
-//                    newHeaders.add(AccessControlAllowHeaders.create(
-//                            StreamSupport.stream(toAdd.getHeaders().spliterator(), false).toArray(String[]::new))
-//                    )
-//            );
-//            return route(options(() -> complete(
-//                    HttpResponse.create().withStatus(StatusCodes.OK).addHeaders(newHeaders))),
-//                    respondWithHeaders(newHeaders, () -> concat(
-//                            createAccuRoute(),
-//                            createW2uRoute(),
-//                            createRhmzRoute()))
-//            );
-//        });
-//    }
-//
-//    private Route createRhmzRoute() {
-//        return concat(
-//                path("rhmz", () ->
-//                        get(() ->
-//                        {
-//                            try {
-//                                return complete(new ObjectMapper().writeValueAsString(rhmzSource.getWeatherDataMap()));
-//                            } catch (JsonProcessingException e) {
-//                                e.printStackTrace();
-//                            }
-//                            return null;
-//                        })));
-//    }
-//
-//    private Route createW2uRoute() {
-//        return concat(
-//                path("w2u", () ->
-//                        get(() ->
-//                        {
-//                            try {
-//                                return complete(new ObjectMapper().writeValueAsString(weather2UmbrellaSource.getWeatherDataMap()));
-//                            } catch (JsonProcessingException e) {
-//                                e.printStackTrace();
-//                            }
-//                            return null;
-//                        })));
-//    }
-//
-//    private Route createAccuRoute() {
-//        return path("accu", () ->
-//                get(() ->
-//                {
-//                    try {
-//                        return complete(new ObjectMapper().writeValueAsString(accuWeatherSource.getWeatherDataMap()));
-//                    } catch (JsonProcessingException e) {
-//                        e.printStackTrace();
-//                    }
-//                    return null;
-//                }));
-//    }
-//
-//    private static List<HttpHeader> createCorsHttpHeaders() {
-//        LOGGER.debug("Creating CORS headers");
-//        return Arrays.asList(
-//                AccessControlAllowOrigin.create(HttpOriginRanges.ALL),
-//                AccessControlAllowMethods.create(HttpMethods.OPTIONS, HttpMethods.GET, HttpMethods.PUT,
-//                        HttpMethods.POST, HttpMethods.HEAD, HttpMethods.DELETE));
-//    }
-//}
+package com.milanbojovic.weather.http;
+
+import akka.actor.ActorSystem;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.model.HttpHeader;
+import akka.http.javadsl.model.HttpMethods;
+import akka.http.javadsl.model.HttpResponse;
+import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.model.headers.*;
+import akka.http.javadsl.server.Directives;
+import akka.http.javadsl.server.Route;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.milanbojovic.weather.spider.AccuWeatherSource;
+import com.milanbojovic.weather.spider.RhmzSource;
+import com.milanbojovic.weather.spider.Weather2UmbrellaSource;
+import com.milanbojovic.weather.util.ConstHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.StreamSupport;
+
+import static akka.http.javadsl.server.Directives.*;
+
+public class Server {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+    private final RhmzSource rhmzSource;
+    private final AccuWeatherSource accuWeatherSource;
+    private final Weather2UmbrellaSource weather2UmbrellaSource;
+
+    public Server(List<String> citiesList) throws IOException {
+        LOGGER.debug("Creating ActorSystem.");
+        ActorSystem system = ActorSystem.create("routes");
+        final Http http = Http.get(system);
+
+        rhmzSource = new RhmzSource(citiesList);
+        accuWeatherSource = new AccuWeatherSource(citiesList);
+        weather2UmbrellaSource = new Weather2UmbrellaSource(citiesList);
+
+        final CompletionStage<ServerBinding> binding = startHttpServer(http);
+
+        LOGGER.info("Akka HTTP Server online at http://" + ConstHelper.SERVER_HOST + ":" + ConstHelper.SERVER_PORT);
+        LOGGER.info("Press RETURN to stop...");
+        System.in.read();
+
+        stopHttpServer(system, binding);
+        LOGGER.info("Akka HTTP Server - stopped");
+    }
+
+    private void stopHttpServer(ActorSystem system, CompletionStage<ServerBinding> binding) {
+        LOGGER.debug("Stopping AKKA HTTP Server");
+        binding
+                .thenCompose(ServerBinding::unbind) // trigger unbinding from the port
+                .thenAccept(unbound -> system.terminate()); // and shutdown when done
+    }
+
+    private CompletionStage<ServerBinding> startHttpServer(Http http) {
+        LOGGER.debug("Starting Akka HTTP Server");
+        return http.newServerAt(ConstHelper.SERVER_HOST, ConstHelper.SERVER_PORT)
+                .bind(createRoutes());
+    }
+
+    private Route createRoutes() {
+        LOGGER.debug("Creating routes");
+        return Directives.optionalHeaderValueByType(AccessControlRequestHeaders.class, corsRequestHeaders -> {
+            final ArrayList<HttpHeader> newHeaders = new ArrayList<>(createCorsHttpHeaders());
+            corsRequestHeaders.ifPresent(toAdd ->
+                    newHeaders.add(AccessControlAllowHeaders.create(
+                            StreamSupport.stream(toAdd.getHeaders().spliterator(), false).toArray(String[]::new))
+                    )
+            );
+            return route(options(() -> complete(
+                    HttpResponse.create().withStatus(StatusCodes.OK).addHeaders(newHeaders))),
+                    respondWithHeaders(newHeaders, () -> concat(
+                            createAccuRoute(),
+                            createW2uRoute(),
+                            createRhmzRoute()))
+            );
+        });
+    }
+
+    private Route createRhmzRoute() {
+        return concat(
+                path("rhmz", () ->
+                        get(() ->
+                        {
+                            try {
+                                return complete(new ObjectMapper().writeValueAsString(rhmzSource.getWeatherDataMap()));
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        })));
+    }
+
+    private Route createW2uRoute() {
+        return concat(
+                path("w2u", () ->
+                        get(() ->
+                        {
+                            try {
+                                return complete(new ObjectMapper().writeValueAsString(weather2UmbrellaSource.getWeatherDataMap()));
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        })));
+    }
+
+    private Route createAccuRoute() {
+        return path("accu", () ->
+                get(() ->
+                {
+                    try {
+                        return complete(new ObjectMapper().writeValueAsString(accuWeatherSource.getWeatherDataMap()));
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }));
+    }
+
+    private static List<HttpHeader> createCorsHttpHeaders() {
+        LOGGER.debug("Creating CORS headers");
+        return Arrays.asList(
+                AccessControlAllowOrigin.create(HttpOriginRanges.ALL),
+                AccessControlAllowMethods.create(HttpMethods.OPTIONS, HttpMethods.GET, HttpMethods.PUT,
+                        HttpMethods.POST, HttpMethods.HEAD, HttpMethods.DELETE));
+    }
+}

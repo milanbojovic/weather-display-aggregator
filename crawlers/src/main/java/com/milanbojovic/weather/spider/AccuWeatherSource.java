@@ -19,6 +19,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -48,7 +49,7 @@ public class AccuWeatherSource extends AbstractWeatherSource {
     }
 
     private List<HttpRequest> createRequestForCity(String city) {
-        return buildAccuWeatherUris(Util.locationIdMap.get(city.toLowerCase()).toString())
+        return buildAccuWeatherUris(Util.accuWeatherLocationIdMap.get(city.toLowerCase()).toString())
                 .stream()
                 .map(uriRequest())
                 .collect(Collectors.toList());
@@ -62,12 +63,12 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     private List<URI> buildAccuWeatherUris(String locationId) {
         return Arrays.asList(buildUri("currentconditions", "v1", locationId),
-                buildUri("forecasts", "v1", "daily", "5day", ConstHelper.ACCU_WEATHER_LOCATION_ID));
+                buildUri("forecasts", "v1", "daily", "5day", locationId));
     }
 
     private URI buildUri(String... path) {
         Optional<String> apiKey = Optional.ofNullable(System.getenv(ConstHelper.ACCU_WEATHER_API_KEY_ENV_VAR));
-        LOGGER.debug("Building uris for " + weatherProvider );
+        LOGGER.debug(MessageFormat.format("Building uris for {0}", weatherProvider));
         try {
             return new URIBuilder(ConstHelper.ACCU_WEATHER_URL)
                     .setPathSegments(path)
@@ -103,11 +104,11 @@ public class AccuWeatherSource extends AbstractWeatherSource {
     }
 
     private String getCurrentWeatherFor(String city) {
-        return documents.get("/currentconditions/v1/" + Util.locationIdMap.get(city.toLowerCase()));
+        return documents.get("/currentconditions/v1/" + Util.accuWeatherLocationIdMap.get(city.toLowerCase()));
     }
 
     private String getFiveDayWeatherFor(String city) {
-        return documents.get("/forecasts/v1/daily/5day/" + Util.locationIdMap.get(city.toLowerCase()));
+        return documents.get("/forecasts/v1/daily/5day/" + Util.accuWeatherLocationIdMap.get(city.toLowerCase()));
     }
 
     @Override
@@ -117,8 +118,7 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     protected List<Map<String, Object>> getWeeklyForecastString(String city) {
         String fiveDayWeather = getFiveDayWeatherFor(city);
-        List<Map<String, Object>> dailyForecasts = JsonPath.read(fiveDayWeather, "$.DailyForecasts");
-        return dailyForecasts;
+        return JsonPath.read(fiveDayWeather, "$.DailyForecasts");
     }
 
     private String mapToJson(Map<String, Object> map) {
@@ -135,7 +135,6 @@ public class AccuWeatherSource extends AbstractWeatherSource {
     protected List<DailyForecast> initializeDailyForecast(String city) {
         LOGGER.debug(String.format("Initializing weather data for %s.", weatherProvider));
         List<Map<String, Object>> weeklyForecastsStr = getWeeklyForecastString(city);
-        List<DailyForecast> weeklyForecasts = new ArrayList<>();
         return weeklyForecastsStr.stream()
                 .map(this::mapToJson)
                 .map(this::buildDailyForecastFor)
@@ -186,7 +185,8 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     @Override
     public String getCurrentImageUrl(String city) {
-        return null;
+        String imgId = JsonPath.read(getCurrentWeatherFor(city), "$[0].WeatherIcon").toString();
+        return String.format(ConstHelper.ACCU_WEATHER_URL + ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION, imgId);
     }
 
     @Override
@@ -253,7 +253,8 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     @Override
     public String getForecastedImageUrl(String element) {
-        return null;
+        String imgId = JsonPath.read(element, "$.Day.IconPhrase");
+        return String.format(ConstHelper.ACCU_WEATHER_URL + ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION, imgId);
     }
 
     @Override

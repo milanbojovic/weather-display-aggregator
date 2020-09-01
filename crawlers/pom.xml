@@ -85,5 +85,10 @@
             <artifactId>logback-classic</artifactId>
             <version>1.0.13</version>
         </dependency>
+        <dependency>
+            <groupId>com.cyrlat</groupId>
+            <artifactId>cyrillic-latin-convertor</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 </project>

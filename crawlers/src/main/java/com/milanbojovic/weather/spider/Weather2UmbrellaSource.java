@@ -4,6 +4,7 @@ import com.milanbojovic.weather.util.ConstHelper;
 import com.milanbojovic.weather.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.cyrlat.CyrillicLatinConverter;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -11,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Weather2UmbrellaSource extends AbstractWeatherSource {
@@ -24,6 +24,7 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
 
         documents = cities.stream()
                 .map(String::toLowerCase)
+                .map(city -> city.replace(" ", "-"))
                 .map(this::buildWeather2UmbrellaUris)
                 .flatMap(Collection::stream)
                 .map(url -> this.requestUriToResponseDocTuple(url, this::getMapKey))
@@ -51,11 +52,11 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
     }
 
     private Document getCurrentWeatherDocFor(String city) {
-        return documents.get(String.format(ConstHelper.W2U_CITY, city) + ConstHelper.W2U_CURRENT_WEATHER);
+        return documents.get(String.format(ConstHelper.W2U_CITY, city.replace(" ", "-")) + ConstHelper.W2U_CURRENT_WEATHER);
     }
 
     private Document getSevenDayWeatherDocFor(String city) {
-        return documents.get(String.format(ConstHelper.W2U_CITY, city) + ConstHelper.W2U_SEVEN_DAY_FORECAST);
+        return documents.get(String.format(ConstHelper.W2U_CITY, city.replace(" ", "-")) + ConstHelper.W2U_SEVEN_DAY_FORECAST);
     }
 
     @Override
@@ -115,8 +116,8 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
     }
 
     private double parseWindSpeed(Element windSpeed) {
-        String windSpeedStr = Optional.ofNullable(windSpeed.text()).orElse("0.0 m/s");
-        return Double.parseDouble(windSpeedStr.substring(0, windSpeedStr.indexOf(" m/s")));
+        String windSpeedStr = windSpeed.text().equals("-")? "0.0 m/s" : windSpeed.text();
+        return Double.parseDouble(windSpeedStr.split(" ")[0]);
     }
 
     @Override
@@ -189,7 +190,7 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
     @Override
     public String getForecastedDescription(Element element) {
         Element dayDescription = element.getElementsByClass("day_description").get(0);
-        return dayDescription.text();
+        return CyrillicLatinConverter.latinToCyrillic(dayDescription.text());
     }
 
     @Override
@@ -214,7 +215,6 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
     }
 
     //NULLS NOT OVERRIDED NOT NEEDED
-    //TODO Get rid of this please ...
 
     @Override
     public double getForecastedMaxTemp(String city) {
