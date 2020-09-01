@@ -1,23 +1,15 @@
 package com.milanbojovic.weather.data;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Date;
+import java.util.List;
 
 @Data
-@Builder
+@RequiredArgsConstructor
 public class WeatherData {
-    int minTemp;
-    int maxTemp;
-    int realFeel;
-    int humidity;
-    int pressure;
-    double uvIndex;
-    double windSpeed;
-    String windDirection;
-    String description;
-    String imageUrl;
-    Date date;
+    private String city;
+    private CurrentWeather currentWeather;
+    private List<DailyForecast> weeklyForecast;
 }
-

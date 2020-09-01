@@ -17,7 +17,7 @@ export class WeatherComponent implements OnInit {
     weatherInfo: WeatherInfo = null;
 
     ngOnInit(): void {
-        this.customTitle = "accuw";
+        this.customTitle = "accu";
         let apiUrl = 'http://localhost:8080/' + this.customTitle;
         let test = this.http.get(apiUrl)
         .subscribe((data: WeatherInfo)=>{
@@ -35,7 +35,7 @@ export class WeatherComponent implements OnInit {
 
   getUrl(provider: string): string {
     switch (provider) {
-      case 'accuw': {
+      case 'accu': {
         return 'https://www.accuweather.com/';
         break;
       }
@@ -43,7 +43,7 @@ export class WeatherComponent implements OnInit {
         return 'https://www.weather2umbrella.com/';
         break;
       }
-      case 'rhmdz': {
+      case 'rhmz': {
         return 'http://www.hidmet.gov.rs/';
         break;
       }

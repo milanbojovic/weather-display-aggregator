@@ -1,45 +1,45 @@
 package com.milanbojovic.weather.spider;
 
+import com.milanbojovic.weather.util.ConstHelper;
+import com.milanbojovic.weather.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Weather2UmbrellaSource extends WeatherSource {
-    static final String URL = "https://www.weather2umbrella.com";
-    static final String CITY = "/vremenska-prognoza-beograd-srbija-sr";
-    static final String SEVEN_DAY_FORECAST = "/7-dana";
-    static final String CURRENT_WEATHER = "/trenutno";
-
+public class Weather2UmbrellaSource extends AbstractWeatherSource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Weather2UmbrellaSource.class);
     private final Map<String, Document> documents;
 
-    public Weather2UmbrellaSource() {
-        documents = createUriList().stream()
-                .map(this::uriDocTuple)
+    public Weather2UmbrellaSource(List<String> cities) {
+        super("Weather2Umbrella Provider");
+        LOGGER.info("Creating Weather2Umbrella Source");
+
+        documents = cities.stream()
+                .map(String::toLowerCase)
+                .map(this::buildWeather2UmbrellaUris)
+                .flatMap(Collection::stream)
+                .map(url -> this.requestUriToResponseDocTuple(url, this::getMapKey))
                 .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-        weatherData = initializeWeatherData();
+        persistAllWeatherDataToMap(cities);
     }
 
-    private List<String> createUriList() {
+    private List<String> buildWeather2UmbrellaUris(String city) {
         return Arrays.asList(
-                URL + CITY + SEVEN_DAY_FORECAST,
-                URL + CITY + CURRENT_WEATHER
+                ConstHelper.W2U_URL + String.format(ConstHelper.W2U_CITY, city) + ConstHelper.W2U_SEVEN_DAY_FORECAST,
+                ConstHelper.W2U_URL + String.format(ConstHelper.W2U_CITY, city) + ConstHelper.W2U_CURRENT_WEATHER
         );
     }
 
-    private ImmutablePair<String, Document> uriDocTuple(String url) {
-        Document document = null;
-        try {
-            document = Jsoup.connect(url).get();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ImmutablePair<>("/" + getCityPath(url) + "/" + getResourcePath(url), document);
+    private String getMapKey(String url) {
+        return "/" + getCityPath(url) + "/" + getResourcePath(url);
     }
 
     private String getResourcePath(String url) {
@@ -50,48 +50,39 @@ public class Weather2UmbrellaSource extends WeatherSource {
         return url.split("/")[url.split("/").length - 2];
     }
 
-    private Document getCurrentWeather() {
-        return documents.get(CITY + CURRENT_WEATHER);
+    private Document getCurrentWeatherDocFor(String city) {
+        return documents.get(String.format(ConstHelper.W2U_CITY, city) + ConstHelper.W2U_CURRENT_WEATHER);
     }
 
-    private Document getSevenDayWeather() {
-        return documents.get(CITY + SEVEN_DAY_FORECAST);
-    }
-
-    @Override
-    public int getMinTemp() {
-        Element today = getCurrentWeekDay();
-        Element minTemperatureElem = today.getElementsByClass("day_min").get(0);
-        return parseTemperature(minTemperatureElem);
-    }
-
-    private int parseTemperature(Element dayMinTemp) {
-        String strTemp = Optional.ofNullable(dayMinTemp.text()).orElse("0°");
-        return Integer.parseInt(strTemp.substring(0, strTemp.indexOf("°")));
-    }
-
-    private Element getCurrentWeekDay() {
-        Element sevenDayTable = getSevenDayWeather().getElementById("seven_days").child(1).child(0).child(0);
-        return sevenDayTable.getElementsByClass("day_wrap").get(0);
+    private Document getSevenDayWeatherDocFor(String city) {
+        return documents.get(String.format(ConstHelper.W2U_CITY, city) + ConstHelper.W2U_SEVEN_DAY_FORECAST);
     }
 
     @Override
-    public int getMaxTemp() {
-        Element today = getCurrentWeekDay();
-        Element dayMinTemp = today.getElementsByClass("day_max").get(0);
-        return parseTemperature(dayMinTemp);
+    protected Elements getWeeklyForecast(String city) {
+        Document sevenDayWeatherDoc = getSevenDayWeatherDocFor(city);
+        return sevenDayWeatherDoc.getElementsByClass("day_wrap")
+                .stream()
+                .limit(5)
+                .collect(Collectors.toCollection(Elements::new));
     }
 
     @Override
-    public int getRealFeel() {
-        Element realFeel = getCurrentWeather().getElementById("feels");
-        return parseTemperature(realFeel);
+    protected double getCurrentTemp(String city) {
+        Element currTempStr = getCurrentWeatherDocFor(city).getElementsByClass("current_temperature_data").get(0);
+        return parseTemperature(currTempStr);
     }
 
     @Override
-    public int getHumidity() {
-        Element humidity = getCurrentWeather().getElementById("humidity");
-        return parseHumidity(humidity);
+    public double getCurrentRealFeel(String city) {
+        Element currRealFeel = getCurrentWeatherDocFor(city).getElementById("feels");
+        return parseTemperature(currRealFeel);
+    }
+
+    @Override
+    public int getCurrentHumidity(String city) {
+        Element currHumidity = getCurrentWeatherDocFor(city).getElementById("humidity");
+        return parseHumidity(currHumidity);
     }
 
     private int parseHumidity(Element humidity) {
@@ -100,8 +91,8 @@ public class Weather2UmbrellaSource extends WeatherSource {
     }
 
     @Override
-    public int getPressure() {
-        Element airPresure = getCurrentWeather().getElementById("presure");
+    public double getCurrentPressure(String city) {
+        Element airPresure = getCurrentWeatherDocFor(city).getElementById("presure");
         return parseAirPressure(airPresure);
     }
 
@@ -111,85 +102,166 @@ public class Weather2UmbrellaSource extends WeatherSource {
     }
 
     @Override
-    public double getUvIndex() {
-        Element today = getCurrentWeekDay();
-        Element dayUv = today.getElementsByClass("day_uv").get(0);
-        return Double.parseDouble(dayUv.text());
+    public double getCurrentUvIndex(String city) {
+        Element dayUv = getCurrentWeatherDocFor(city).getElementById("uv");
+        String uvText = dayUv.text().equals("-")? "0" : dayUv.text();
+        return Double.parseDouble(uvText);
     }
 
     @Override
-    public double getWindSpeed() {
-        Element today = getCurrentWeekDay();
-        Element dayWindSpeed = today.getElementsByClass("day_wind_speed").get(0);
-        return parseWindSpeedTemperature(dayWindSpeed);
+    public double getCurrentWindSpeed(String city) {
+        Element currWindSpeed = getCurrentWeatherDocFor(city).getElementById("wind");
+        return parseWindSpeed(currWindSpeed);
     }
 
-    private double parseWindSpeedTemperature(Element windSpeed) {
-        String strTemp = Optional.ofNullable(windSpeed.text()).orElse("0.0 m/s");
-        return Double.parseDouble(strTemp.substring(0, strTemp.indexOf(" m/s")));
-    }
-
-    @Override
-    public String getWindDirection() {
-        Element today = getCurrentWeekDay();
-        Element dayWindSpeed = today.getElementsByClass("day_wind_dir").get(0);
-        return dayWindSpeed.text();
+    private double parseWindSpeed(Element windSpeed) {
+        String windSpeedStr = Optional.ofNullable(windSpeed.text()).orElse("0.0 m/s");
+        return Double.parseDouble(windSpeedStr.substring(0, windSpeedStr.indexOf(" m/s")));
     }
 
     @Override
-    public String getDescription() {
-        Element today = getCurrentWeekDay();
-        Element dayDescription = today.getElementsByClass("day_description").get(0);
+    public String getCurrentWindDirection(String city) {
+        Element currWindDirection = getCurrentWeatherDocFor(city).getElementById("wind");
+        return currWindDirection.text().split(" ")[3];
+    }
+
+    @Override
+    public String getCurrentDescription(String city) {
+        Element dayDescription = getCurrentWeatherDocFor(city).getElementsByClass("weather_icon_decription").first();
         return dayDescription.text();
     }
 
     @Override
-    public String getImageUrl() {
-        Element today = getCurrentWeekDay();
-        Element dayImage = today.getElementsByClass("day_icon").get(0);
+    public String getCurrentImageUrl(String city) {
+        Element dayImage = getCurrentWeatherDocFor(city).getElementsByClass("current_wether_icon").first()
+                .getElementsByTag("img").first();
+        return dayImage.attr("src");
+    }
+
+    @Override
+    public String getCurrentDate(String city) {
+        String strDate = getCurrentWeatherDocFor(city).getElementById("current_date").text();
+        String[] split = strDate.split(" ");
+
+        int year = Integer.parseInt(split[split.length -1]);
+        int month = Util.monthNumberMap.get(split[split.length - 3].toLowerCase());
+        int day = Integer.parseInt(StringUtils.remove(split[split.length -2],"."));
+        return year + "-" + month + "-" + day;
+    }
+
+    private double parseTemperature(Element dayMinTemp) {
+        String strTemp = Optional.ofNullable(dayMinTemp.text()).orElse("0°");
+        return Double.parseDouble(strTemp.substring(0, strTemp.indexOf("°")));
+    }
+
+    @Override
+    public double getForecastedMinTemp(Element element) {
+        Element dayMinTemp = element.getElementsByClass("day_min").get(0);
+        return parseTemperature(dayMinTemp);
+    }
+
+    @Override
+    public double getForecastedMaxTemp(Element element) {
+        Element dayMinTemp = element.getElementsByClass("day_max").get(0);
+        return parseTemperature(dayMinTemp);
+    }
+
+
+    @Override
+    public double getForecastedWindSpeed(Element element) {
+        Element dayWindSpeed = element.getElementsByClass("day_wind_speed").get(0);
+        return parseWindSpeed(dayWindSpeed);
+    }
+
+
+    @Override
+    public String getForecastedWindDirection(Element element) {
+        Element dayWindDirection = element.getElementsByClass("day_wind_dir").get(0);
+        return dayWindDirection.text();
+    }
+
+    @Override
+    public double getForecastedUvIndex(Element element) {
+        Element dayUv = element.getElementsByClass("day_uv").get(0);
+        return Double.parseDouble(dayUv.text());
+    }
+
+    @Override
+    public String getForecastedDescription(Element element) {
+        Element dayDescription = element.getElementsByClass("day_description").get(0);
+        return dayDescription.text();
+    }
+
+    @Override
+    public String getForecastedDate(Element element) {
+        String dayLabel = element.getElementsByClass("day_label").get(0).text();
+        int day = Integer.parseInt(dayLabel.split(" ")[1].substring(0, 2));
+        int month = Util.monthNumberMap.get(dayLabel.split(" ")[2].trim().toLowerCase());
+        int year = Calendar.getInstance().get(Calendar.YEAR);
+        return year + "-" + month + "-" + day;
+    }
+
+    @Override
+    public String getForecastedImageUrl(Element element) {
+        Element dayImage = element.getElementsByClass("day_icon").get(0);
         return dayImage.child(0).attr("src");
     }
 
     @Override
-    public Date getDate() {
-        String strDate = getCurrentWeather().getElementById("current_date").text();
-        String[] split = strDate.split(" ");
-
-        int year = Integer.parseInt(split[split.length -1]);
-        int month = monthToNumber(split[split.length -3]);
-        int day = Integer.parseInt(StringUtils.remove(split[split.length -2],"."));
-
-        return new Date(year, month, day);
+    public String getForecastedDay(Element element) {
+        String dayLabel = element.getElementsByClass("day_label").get(0).text();
+        return dayLabel.split(" ")[0].trim();
     }
 
-    private int monthToNumber(String month) {
-        switch (month.toLowerCase()) {
-            case "jan":
-                return 0;
-            case "feb":
-                return 1;
-            case "mar":
-                return 2;
-            case "apr":
-                return 3;
-            case "maj":
-                return 4;
-            case "jun":
-                return 5;
-            case "jul":
-                return 6;
-            case "avg":
-                return 7;
-            case "sep":
-                return 8;
-            case "okt":
-                return 9;
-            case "nov":
-                return 10;
-            case "dec":
-                return 11;
-            default:
-                return 0;
-        }
+    //NULLS NOT OVERRIDED NOT NEEDED
+    //TODO Get rid of this please ...
+
+    @Override
+    public double getForecastedMaxTemp(String city) {
+        return 0;
+    }
+
+
+    @Override
+    public double getForecastedMinTemp(String city) {
+        return 0;
+    }
+
+
+    @Override
+    public double getForecastedWindSpeed(String city) {
+        return 0;
+    }
+
+    @Override
+    public String getForecastedWindDirection(String city) {
+        return null;
+    }
+
+    @Override
+    public double getForecastedUvIndex(String city) {
+        return 0;
+    }
+
+    @Override
+    public String getForecastedDescription(String city) {
+        return null;
+    }
+
+    @Override
+    public String getForecastedDate(String city) {
+        return null;
+    }
+
+    @Override
+    public String getForecastedImageUrl(String city) {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "Weather2UmbrellaSource{" +
+                "weatherDataMap=" + weatherDataMap +
+                '}';
     }
 }

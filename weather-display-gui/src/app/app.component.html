@@ -4,16 +4,16 @@
 <div class="container">
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a id="accuw" class="nav-link" [ngClass]="{'active': accuWeather === 'accuw'}" [routerLink]=""
-         (click)="passTheSalt('accuw')">AccuWeather</a>
+      <a id="accu" class="nav-link" [ngClass]="{'active': accuWeather === 'accu'}" [routerLink]=""
+         (click)="passTheSalt('accu')">AccuWeather</a>
     </li>
     <li class="nav-item">
       <a id="w2u" class="nav-link" [ngClass]="{'active': accuWeather === 'w2u'}" [routerLink]=""
          (click)="passTheSalt('w2u')" >Weather2Umbrella</a>
     </li>
     <li class="nav-item">
-      <a id="rhmdz" class="nav-link" [ngClass]="{'active': accuWeather === 'rhmdz'}" [routerLink]=""
-         (click)="passTheSalt('rhmdz')">RHMDZ</a>
+      <a id="rhmz" class="nav-link" [ngClass]="{'active': accuWeather === 'rhmz'}" [routerLink]=""
+         (click)="passTheSalt('rhmz')">RHMZ</a>
     </li>
   </ul>
   <weather-component [customTitle]="accuWeather"></weather-component>
