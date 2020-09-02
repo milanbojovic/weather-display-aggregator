@@ -1,6 +1,7 @@
-import { Component, OnInit, Input, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { WeatherInfo } from "../../model/weather-info.model";
+import {Component, Input, OnInit, SimpleChanges} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {CityList} from "../../model/city-list.model";
+
 
 @Component({
   selector: 'weather-component',
@@ -14,22 +15,22 @@ export class WeatherComponent implements OnInit {
     @Input()
     customTitle: string;
 
-    weatherInfo: WeatherInfo = null;
+    cityList: CityList = null;
 
     ngOnInit(): void {
-        this.customTitle = "accu";
-        let apiUrl = 'http://localhost:8080/' + this.customTitle;
-        let test = this.http.get(apiUrl)
-        .subscribe((data: WeatherInfo)=>{
-            this.weatherInfo = data;
+        this.customTitle = 'accu';
+        const apiUrl = 'http://localhost:8080/' + this.customTitle;
+        const test = this.http.get(apiUrl)
+        .subscribe((data: CityList) => {
+            this.cityList = data;
         });
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        let apiUrl = 'http://localhost:8080/' + this.customTitle;
-                let test = this.http.get(apiUrl)
-                .subscribe((data: WeatherInfo)=>{
-                    this.weatherInfo = data;
+        const apiUrl = 'http://localhost:8080/' + this.customTitle;
+        const test = this.http.get(apiUrl)
+                .subscribe((data: CityList) => {
+                    this.cityList = data;
                 });
       }
 

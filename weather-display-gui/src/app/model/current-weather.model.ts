@@ -1,6 +1,5 @@
-export class WeatherInfo {
-    minTemp: number;
-    maxTemp: number;
+export class CurrentWeather {
+    currentTemp: number;
     realFeel: number;
     humidity: number;
     pressure: number;
@@ -10,4 +9,5 @@ export class WeatherInfo {
     description: string;
     imageUrl: string;
     date: string;
+    day: string;
 }

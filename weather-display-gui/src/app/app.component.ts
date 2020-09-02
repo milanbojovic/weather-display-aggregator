@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'weather-display-gui';
-  accuWeather = 'accuw';
+  accuWeather = 'accu';
 
     passTheSalt(id){
             this.accuWeather = id;

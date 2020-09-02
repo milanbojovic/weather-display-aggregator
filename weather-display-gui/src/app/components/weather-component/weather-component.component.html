@@ -1,9 +1,9 @@
-<div *ngIf="weatherInfo !== undefined && weatherInfo !== null">
+<div *ngIf="cityList !== undefined && cityList !== null">
 
   <table class="table table-striped">
     <thead>
     <tr>
-      <td scope="col">Из</td>
+      <td scope="col">Извор података</td>
       <td scope="col">{{getUrl(customTitle.toLocaleLowerCase())}}</td>
     </tr>
     <tr>
@@ -13,48 +13,48 @@
     </thead>
     <tbody>
     <tr>
-      <td>Минимална температура</td>
-      <td>{{weatherInfo.minTemp}}</td>
-    </tr>
-    <tr>
-      <td>Максимална температура</td>
-      <td>{{weatherInfo.maxTemp}}</td>
+      <td>Тренутна температура</td>
+      <td>{{cityList[0].currentWeather.currentTemp}}</td>
     </tr>
     <tr>
       <td>Субјективни осћај</td>
-      <td>{{weatherInfo.realFeel}}</td>
+      <td>{{cityList[0].currentWeather.realFeel}}</td>
     </tr>
     <tr>
       <td>Влажност ваздуха</td>
-      <td>{{weatherInfo.humidity}}</td>
+      <td>{{cityList[0].currentWeather.humidity}}</td>
     </tr>
     <tr>
       <td>Ваздушни притисак</td>
-      <td>{{weatherInfo.pressure}}</td>
+      <td>{{cityList[0].currentWeather.pressure}}</td>
     </tr>
     <tr>
       <td>Ув индекс</td>
-      <td>{{weatherInfo.uvIndex}}</td>
+      <td>{{cityList[0].currentWeather.uvIndex}}</td>
     </tr>
     <tr>
       <td>Брзина ветра</td>
-      <td>{{weatherInfo.windSpeed}}</td>
+      <td>{{cityList[0].currentWeather.windSpeed}}</td>
     </tr>
     <tr>
       <td>Смер ветра</td>
-      <td>{{weatherInfo.windDirection}}</td>
+      <td>{{cityList[0].currentWeather.windDirection}}</td>
     </tr>
     <tr>
       <td>Опис прогнозе</td>
-      <td>{{weatherInfo.description}}</td>
+      <td>{{cityList[0].currentWeather.description}}</td>
     </tr>
     <tr>
       <td>Датум</td>
-      <td>{{weatherInfo.date | date}}</td>
+      <td>{{cityList[0].currentWeather.date | date}}</td>
+    </tr>
+    <tr>
+      <td>Дан</td>
+      <td>{{cityList[0].currentWeather.day | date}}</td>
     </tr>
     <tr>
       <td>Слика</td>
-      <td><img class="images" [src]="weatherInfo.imageUrl"/></td>
+      <td><img class="images" [src]="cityList[0].currentWeather.imageUrl"/></td>
     </tr>
     </tbody>
   </table>
