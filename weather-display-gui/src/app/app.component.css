@@ -3,9 +3,14 @@ body {
   height:auto;
 }
 
+div.left-navbar {
+  background-color: white;
+}
+
 div.jumbotron {
   background-color: black;
   color: white;
   max-width: 100%;
   text-align: center;
+  margin-bottom: 0;
 }

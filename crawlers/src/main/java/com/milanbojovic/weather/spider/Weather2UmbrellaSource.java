@@ -130,7 +130,7 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
     @Override
     public String getCurrentDescription(String city) {
         Element dayDescription = getCurrentWeatherDocFor(city).getElementsByClass("weather_icon_decription").first();
-        return dayDescription.text();
+        return CyrillicLatinConverter.latinToCyrillic(dayDescription.text());
     }
 
     @Override

@@ -43,7 +43,7 @@ export class WeatherComponent implements OnInit {
         if (this.providerSource === 'combined') {
           const accuw: Observable <WeatherData> = this.http.get<WeatherData>(this.apiAccu + this.city);
           const w2u: Observable <WeatherData> = this.http.get<WeatherData>(this.apiW2u + this.city);
-          const rhmz: Observable<WeatherData> = this.http.get<WeatherData>(this.apiAccu + this.city);
+          const rhmz: Observable<WeatherData> = this.http.get<WeatherData>(this.apiRhmz + this.city);
 
           forkJoin([accuw, w2u, rhmz]).subscribe(combinedResults  => {
             this.combinedWeatherData = combinedResults;

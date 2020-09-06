@@ -23,6 +23,7 @@ import static java.lang.String.format;
 public class RhmzSource extends AbstractWeatherSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(RhmzSource.class);
     public static final String WEATHER_PROVIDER_NAME = "RHMZ";
+    public static final String CONTENT_MISSING_IMAGE_URL = "https://icon-library.net/images/error-icon-png/error-icon-png-4.jpg";
     private final Map<String, Document> documents;
 
     public RhmzSource(List<String> cities) {
@@ -81,7 +82,7 @@ public class RhmzSource extends AbstractWeatherSource {
             dailyForecast.setDescription("N/A");
             dailyForecast.setDay("N/A");
             dailyForecast.setProvider(WEATHER_PROVIDER_NAME);
-            dailyForecast.setImageUrl("https://icon-library.net/images/ban-icon/ban-icon-9.jpg");
+            dailyForecast.setImageUrl(CONTENT_MISSING_IMAGE_URL);
         });
 
         LOGGER.debug(format("Initializing weather data for %s.", weatherProvider));
@@ -136,7 +137,7 @@ public class RhmzSource extends AbstractWeatherSource {
             String getElementTextValue = element.text();
             value = parseDouble(getElementTextValue);
         } catch (NumberFormatException ex) {
-            LOGGER.error("Error while par");
+            LOGGER.error(MessageFormat.format("Error while parsing double value for element {0}", element));
 
         }
         return value;
@@ -261,8 +262,8 @@ public class RhmzSource extends AbstractWeatherSource {
                 .getElementsByTag("h1").get(0)
                 .text();
         String dateStr = heading.split(" ")[6];
-        String[] split = dateStr.replace('.', ' ').split(" ");
-        int year = Integer.parseInt(split[1]);
+        String[] split = dateStr.split("\\.");
+        int year = Integer.parseInt(split[2]);
         int month = Integer.parseInt(split[1]);
         int day = Integer.parseInt(split[0]);
         return Util.formatDate(year, month, day);

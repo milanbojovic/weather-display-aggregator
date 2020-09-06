@@ -19,6 +19,7 @@ public class Main {
         List<String> citiesList = Arrays.asList(
                 Util.CITY_BEOGRAD,
                 Util.CITY_NOVI_SAD,
+                Util.CITY_KRAGUJEVAC,
                 Util.CITY_NIS,
                 Util.CITY_ZLATIBOR
         );

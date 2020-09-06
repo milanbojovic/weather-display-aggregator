@@ -8,6 +8,7 @@ import net.minidev.json.JSONValue;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.math3.util.Precision;
 import org.apache.http.client.utils.URIBuilder;
+import org.cyrlat.CyrillicLatinConverter;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 
 public class AccuWeatherSource extends AbstractWeatherSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccuWeatherSource.class);
-    public static final String WEATHER_PROVIDER_NAME = "ACUW";
+    public static final String WEATHER_PROVIDER_NAME = "ACCU";
     private final HttpClient httpClient;
     private Map<String, String> documents;
 
@@ -211,7 +212,8 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     @Override
     public String getCurrentDescription(String city) {
-        return JsonPath.read(getCurrentWeatherFor(city), "$[0].WeatherText");
+        String latinString = JsonPath.read(getCurrentWeatherFor(city), "$[0].WeatherText");
+        return CyrillicLatinConverter.latinToCyrillic(latinString);
     }
 
     @Override
@@ -259,7 +261,8 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     @Override
     public String getForecastedDescription(String element) {
-        return JsonPath.read(element, "$.Day.IconPhrase");
+        String latinString = JsonPath.read(element, "$.Day.IconPhrase");
+        return CyrillicLatinConverter.latinToCyrillic(latinString);
     }
 
     @Override
