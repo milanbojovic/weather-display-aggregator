@@ -19,9 +19,11 @@ public class ConstHelper {
 
     //AccuWeather
     public static final String ACCU_WEATHER_URL = "http://dataservice.accuweather.com";
+    public static final String ACCU_WEATHER_IMAGE_URL = "http://dataservice.accuweather.com"
+            .replace("dataservice", "developer");
     public static final String ACCU_WEATHER_API_KEY_ENV_VAR = "ACCU_WEATHER_API_KEY";
     public static final String ACCU_WEATHER_LOCATION_ID = "298198";
-    public static final String ACCU_WEATHER_API_IMAGES_LOCATION = "sites/default/files/%s-s.png";
+    public static final String ACCU_WEATHER_API_IMAGES_LOCATION = "/sites/default/files/%s-s.png";
     public static final String ACCU_WEATHER_QUERY_PARAM_API_KEY = "apikey";
     public static final String ACCU_WEATHER_QUERY_PARAM_DETAILS_NEEDED = "details";
     public static final String ACCU_WEATHER_QUERY_PARAM_METRIC = "metric";

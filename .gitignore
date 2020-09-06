@@ -26,5 +26,4 @@ hs_err_pid*
 *.iml
 .idea
 
-/docker/docker-app/target/
-/target/*
+target/

@@ -25,6 +25,10 @@ public class Util {
 
     private Util() {}
 
+    public static String formatDate(int year, int month, int day) {
+        return String.format("%02d.%02d.%s", day, month, year);
+    }
+
     private static HashMap<String, String> initDayTranslationCyrilic() {
         HashMap<String, String> map = new HashMap<>();
         map.put("monday", "Понедељак");

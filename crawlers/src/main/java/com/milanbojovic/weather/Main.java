@@ -31,7 +31,7 @@ public class Main {
 //        LOGGER.info(acu.toString());
 //        LOGGER.info(w2u.toString());
 //        LOGGER.info(rhmz.toString());
-        Server server = new Server(Arrays.asList(Util.CITY_BEOGRAD, Util.CITY_NOVI_SAD, Util.CITY_KRAGUJEVAC));
+        Server server = new Server(citiesList);
         LOGGER.info("Main - finished");
     }
 }

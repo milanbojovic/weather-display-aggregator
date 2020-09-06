@@ -8,18 +8,22 @@ import akka.http.javadsl.model.HttpMethods;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.model.headers.*;
-import akka.http.javadsl.server.Directives;
+import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.milanbojovic.weather.data.WeatherData;
+import com.milanbojovic.weather.spider.AbstractWeatherSource;
 import com.milanbojovic.weather.spider.AccuWeatherSource;
 import com.milanbojovic.weather.spider.RhmzSource;
 import com.milanbojovic.weather.spider.Weather2UmbrellaSource;
 import com.milanbojovic.weather.util.ConstHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,8 +35,8 @@ import static akka.http.javadsl.server.Directives.*;
 public class Server {
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
     private final RhmzSource rhmzSource;
-    private final AccuWeatherSource accuWeatherSource;
-    private final Weather2UmbrellaSource weather2UmbrellaSource;
+    private final AccuWeatherSource accuSource;
+    private final Weather2UmbrellaSource w2uSource;
 
     public Server(List<String> citiesList) throws IOException {
         LOGGER.debug("Creating ActorSystem.");
@@ -40,8 +44,8 @@ public class Server {
         final Http http = Http.get(system);
 
         rhmzSource = new RhmzSource(citiesList);
-        accuWeatherSource = new AccuWeatherSource(citiesList);
-        weather2UmbrellaSource = new Weather2UmbrellaSource(citiesList);
+        accuSource = new AccuWeatherSource(citiesList);
+        w2uSource = new Weather2UmbrellaSource(citiesList);
 
         final CompletionStage<ServerBinding> binding = startHttpServer(http);
 
@@ -68,7 +72,7 @@ public class Server {
 
     private Route createRoutes() {
         LOGGER.debug("Creating routes");
-        return Directives.optionalHeaderValueByType(AccessControlRequestHeaders.class, corsRequestHeaders -> {
+        return optionalHeaderValueByType(AccessControlRequestHeaders.class, corsRequestHeaders -> {
             final ArrayList<HttpHeader> newHeaders = new ArrayList<>(createCorsHttpHeaders());
             corsRequestHeaders.ifPresent(toAdd ->
                     newHeaders.add(AccessControlAllowHeaders.create(
@@ -77,53 +81,65 @@ public class Server {
             );
             return route(options(() -> complete(
                     HttpResponse.create().withStatus(StatusCodes.OK).addHeaders(newHeaders))),
-                    respondWithHeaders(newHeaders, () -> concat(
-                            createAccuRoute(),
-                            createW2uRoute(),
-                            createRhmzRoute()))
+                    respondWithHeaders(newHeaders, () ->
+                            concat(
+                                    createAccuRoute(),
+                                    createW2uRoute(),
+                                    createRhmzRoute(),
+                                    complete("Boom - Rhmz Http route not matched")
+                            )
+                    )
             );
         });
     }
 
+    /*
+
+    private Route testRoute() {
+        return concat(
+                pathPrefix("nikola", () -> complete("nikola called")),
+                pathPrefix(PathMatchers.segment("milan").slash(), () ->
+                                extractUnmatchedPath(path -> complete("milan called with additional " + path))
+                ),
+                pathPrefix("milan", () -> complete("milan called"))
+        );
+    }
+    * */
     private Route createRhmzRoute() {
         return concat(
-                path("rhmz", () ->
-                        get(() ->
-                        {
-                            try {
-                                return complete(new ObjectMapper().writeValueAsString(rhmzSource.getWeatherDataMap()));
-                            } catch (JsonProcessingException e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        })));
+                pathPrefix(PathMatchers.segment("rhmz").slash(), () ->
+                    extractUnmatchedPath(city -> getAllWeatherDataFrom(rhmzSource, city))
+                )
+        );
     }
 
     private Route createW2uRoute() {
         return concat(
-                path("w2u", () ->
-                        get(() ->
-                        {
-                            try {
-                                return complete(new ObjectMapper().writeValueAsString(weather2UmbrellaSource.getWeatherDataMap()));
-                            } catch (JsonProcessingException e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        })));
+                pathPrefix(PathMatchers.segment("w2u").slash(), () ->
+                        extractUnmatchedPath(city -> getAllWeatherDataFrom(w2uSource, city))
+                )
+        );
     }
 
     private Route createAccuRoute() {
-        return path("accu", () ->
-                get(() ->
-                {
-                    try {
-                        return complete(new ObjectMapper().writeValueAsString(accuWeatherSource.getWeatherDataMap()));
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }));
+        return concat(
+                pathPrefix(PathMatchers.segment("accu").slash(), () ->
+                        extractUnmatchedPath(city -> getAllWeatherDataFrom(accuSource, city))
+                )
+        );
+    }
+
+    private Route getAllWeatherDataFrom(AbstractWeatherSource source, String city) {
+        LOGGER.debug("Getting all weather data for source: %s, city: %s", source.getWeatherProvider(), city);
+        String cityDecoded = URLDecoder.decode(StringUtils.capitalize(city));
+        WeatherData cityWeather = source.getWeatherDataMap().get(cityDecoded);
+        try {
+            return complete(new ObjectMapper().writeValueAsString(cityWeather));
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Error while trying to serialze weatherData to JSON");
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private static List<HttpHeader> createCorsHttpHeaders() {

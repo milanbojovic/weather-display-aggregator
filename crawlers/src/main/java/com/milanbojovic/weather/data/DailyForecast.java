@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class DailyForecast {
+    String provider;
     double minTemp;
     double maxTemp;
     double windSpeed;

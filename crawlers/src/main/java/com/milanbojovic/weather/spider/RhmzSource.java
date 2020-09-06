@@ -16,14 +16,16 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.Double.parseDouble;
 import static java.lang.String.format;
 
 public class RhmzSource extends AbstractWeatherSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(RhmzSource.class);
+    public static final String WEATHER_PROVIDER_NAME = "RHMZ";
     private final Map<String, Document> documents;
 
     public RhmzSource(List<String> cities) {
-        super("Rhmz Provider");
+        super(WEATHER_PROVIDER_NAME);
         LOGGER.info("Creating Rhmz Source");
 
         documents = createUriList(cities).stream()
@@ -80,13 +82,15 @@ public class RhmzSource extends AbstractWeatherSource {
             Element rowElement = weeklyForecast.get(i);
             Elements columnElements = rowElement.children();
             for(int j = 2; j < rowElement.children().size() - 1; j++) {
+                Element currentElement = columnElements.get(j);
                 DailyForecast dailyForecast = resultList.get(j - 2);
-                if (i == 0) dailyForecast.setMaxTemp(Double.parseDouble(columnElements.get(j).text()));
-                if (i == 1) dailyForecast.setMinTemp(Double.parseDouble(columnElements.get(j).text()));
+                if (i == 0) dailyForecast.setMaxTemp(getDoubleVal(currentElement));
+                if (i == 1) dailyForecast.setMinTemp(getDoubleVal(currentElement));
                 if (i == 2) {
-                    String imgUrl = columnElements.get(j).child(0).attr("src");
+                    String imgUrl = currentElement.child(0).attr("src");
                     dailyForecast.setImageUrl(ConstHelper.RHMZ_URL + "/repository/" + imgUrl.split("repository")[1]);
                 }
+                dailyForecast.setProvider(WEATHER_PROVIDER_NAME);
                 dailyForecast.setDescription("N/A");
                 dailyForecast.setWindDirection("N/A");
             }
@@ -109,12 +113,24 @@ public class RhmzSource extends AbstractWeatherSource {
             DailyForecast dailyForecast = resultList.get(i-2);
             dailyForecast.setDay(headColumns.get(i).text().split(" ")[0]);
 
-            int day = Integer.parseInt(headColumns.get(i).text().split(" ")[1].replace(".", " ").split(" ")[0]);
-            int month = Integer.parseInt(headColumns.get(i).text().split(" ")[1].replace(".", " ").split(" ")[1]);
+            int day = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[0]);
+            int month = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[1]);
             int year = Calendar.getInstance().get(Calendar.YEAR);
-            dailyForecast.setDate(year + "-" + month + "-" + day);
+            dailyForecast.setDate(Util.formatDate(year, month, day));
         }
         return resultList;
+    }
+
+    private double getDoubleVal(Element element) {
+        double value = 0;
+        try{
+            String getElementTextValue = element.text();
+            value = parseDouble(getElementTextValue);
+        } catch (NumberFormatException ex) {
+            LOGGER.error("Error while par");
+
+        }
+        return value;
     }
 
     private Elements getDailyForecastForCityTable(Document weeklyForecast) {
@@ -147,7 +163,7 @@ public class RhmzSource extends AbstractWeatherSource {
     protected double getCurrentTemp(String city) {
         Element cityElement = getCurrentWeatherFor(city);
         String temperature = getColumnValue(cityElement, CurrentWeatherColumnsEnum.TEMPERATURE);
-        return Double.parseDouble(temperature);
+        return parseDouble(temperature);
     }
 
     private Element findCity(Elements citiesTable, String city) {
@@ -181,7 +197,7 @@ public class RhmzSource extends AbstractWeatherSource {
     public double getCurrentRealFeel(String city) {
         Element cityElement = getCurrentWeatherFor(city);
         String realFeel = getColumnValue(cityElement, CurrentWeatherColumnsEnum.REAL_FEEL);
-        return Double.parseDouble(realFeel);
+        return parseDouble(realFeel);
     }
 
     @Override
@@ -195,14 +211,13 @@ public class RhmzSource extends AbstractWeatherSource {
     public double getCurrentPressure(String city) {
         Element cityElement = getCurrentWeatherFor(city);
         String pressure = getColumnValue(cityElement, CurrentWeatherColumnsEnum.PRESSURE);
-        return Double.parseDouble(pressure);
+        return parseDouble(pressure);
     }
 
     @Override
     public double getCurrentUvIndex(String city) {
         Element uvElem = getUvIndexWeatherFor(city);
-        double uv = uvElem == null ? 0 : Double.parseDouble(uvElem.child(1).text());
-        return uv;
+        return uvElem == null ? 0 : parseDouble(uvElem.child(1).text());
     }
 
     @Override
@@ -211,7 +226,7 @@ public class RhmzSource extends AbstractWeatherSource {
         String windSpeedStr = getColumnValue(cityElement, CurrentWeatherColumnsEnum.WIND_SPEED);
         double windSpeed = 0;
         try{
-            windSpeed = Double.parseDouble(windSpeedStr);
+            windSpeed = parseDouble(windSpeedStr);
         } catch (NumberFormatException e) {
             LOGGER.error(String.format("Error while converting wind speed value to double: %s", windSpeedStr));
         }
@@ -241,7 +256,7 @@ public class RhmzSource extends AbstractWeatherSource {
         int year = Integer.parseInt(split[2]);
         int month = Integer.parseInt(split[1]);
         int day = Integer.parseInt(split[0]);
-        return year + "-" + month + "-" + day;
+        return Util.formatDate(year, month, day);
     }
 
     @Override
@@ -339,7 +354,7 @@ public class RhmzSource extends AbstractWeatherSource {
         int day = Integer.parseInt(date.substring(0,2));
         int month = Integer.parseInt(date.substring(3,5));
         int year = Integer.parseInt(date.substring(6,10));
-        return year + "-" + month + "-" + day;
+        return Util.formatDate(year, month, day);
     }
 
     @Override

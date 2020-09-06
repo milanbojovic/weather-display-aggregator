@@ -3,6 +3,8 @@ package com.milanbojovic.weather.spider;
 import com.milanbojovic.weather.data.CurrentWeather;
 import com.milanbojovic.weather.data.DailyForecast;
 import com.milanbojovic.weather.data.WeatherData;
+import com.milanbojovic.weather.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cyrlat.CyrillicLatinConverter;
 import org.jsoup.Jsoup;
@@ -30,6 +32,10 @@ public abstract class AbstractWeatherSource {
         weatherDataMap = new HashMap<>();
     }
 
+    public String getWeatherProvider() {
+        return weatherProvider;
+    }
+
     public Map<String, WeatherData> getWeatherDataMap() {
         return weatherDataMap;
     }
@@ -42,7 +48,7 @@ public abstract class AbstractWeatherSource {
 
     protected WeatherData assembleWeatherDataForCity(String city) {
         WeatherData weatherData = new WeatherData();
-        weatherData.setCity(city);
+        weatherData.setCity(StringUtils.capitalize(city));
         weatherData.setCurrentWeather(initializeCurrentWeather(city));
         weatherData.setWeeklyForecast(initializeDailyForecast(city));
         return weatherData;
@@ -81,6 +87,7 @@ public abstract class AbstractWeatherSource {
 
     protected DailyForecast buildDailyForecastFor(Element element) {
         return DailyForecast.builder()
+                .provider(weatherProvider)
                 .minTemp(getForecastedMinTemp(element))
                 .maxTemp(getForecastedMaxTemp(element))
                 .windSpeed(getForecastedWindSpeed(element))
@@ -105,14 +112,16 @@ public abstract class AbstractWeatherSource {
     }
 
     protected String getDayFromDateString(String dateStr) {
-        int year = Integer.parseInt(dateStr.split("-")[0]);
-        int month = Integer.parseInt(dateStr.split("-")[1]);
-        int day = Integer.parseInt(dateStr.split("-")[2]);
-        return CyrillicLatinConverter.latinToCyrillic(LocalDate.of(year, month, day)
+        String[] dateSplit = dateStr.split("\\.");
+        int day = Integer.parseInt(dateSplit[0]);
+        int month = Integer.parseInt(dateSplit[1]);
+        int year = Integer.parseInt(dateSplit[2]);
+
+        String stringDate = LocalDate.of(year, month, day)
                 .getDayOfWeek()
                 .toString()
-                .toLowerCase()
-        );
+                .toLowerCase();
+        return Util.translateDayToRsCyrilic.get(stringDate);
     }
 
     protected abstract Elements getWeeklyForecast(String city);

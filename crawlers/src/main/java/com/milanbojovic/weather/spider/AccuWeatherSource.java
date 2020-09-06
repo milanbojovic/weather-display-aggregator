@@ -27,11 +27,12 @@ import java.util.stream.Collectors;
 
 public class AccuWeatherSource extends AbstractWeatherSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccuWeatherSource.class);
+    public static final String WEATHER_PROVIDER_NAME = "ACUW";
     private final HttpClient httpClient;
     private Map<String, String> documents;
 
     public AccuWeatherSource(List<String> cities) {
-        super("AccuWeather Provider");
+        super(WEATHER_PROVIDER_NAME);
         LOGGER.info("Creating AccuWeather Source");
         httpClient = HttpClient.newHttpClient();
         try {
@@ -143,6 +144,7 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     protected DailyForecast buildDailyForecastFor(String json) {
         return DailyForecast.builder()
+                .provider(WEATHER_PROVIDER_NAME)
                 .minTemp(getForecastedMinTemp(json))
                 .maxTemp(getForecastedMaxTemp(json))
                 .windSpeed(getForecastedWindSpeed(json))
@@ -186,7 +188,13 @@ public class AccuWeatherSource extends AbstractWeatherSource {
     @Override
     public String getCurrentImageUrl(String city) {
         String imgId = JsonPath.read(getCurrentWeatherFor(city), "$[0].WeatherIcon").toString();
-        return String.format(ConstHelper.ACCU_WEATHER_URL + ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION, imgId);
+        return assembleAccuWeatherImageUrl(imgId);
+    }
+
+    private String assembleAccuWeatherImageUrl(String imgId) {
+        return String.format(
+                String.format("%s%s", ConstHelper.ACCU_WEATHER_IMAGE_URL, ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION),
+                String.format("%02d", Integer.parseInt(imgId)));
     }
 
     @Override
@@ -215,7 +223,7 @@ public class AccuWeatherSource extends AbstractWeatherSource {
         int year = Integer.parseInt(dateArr[0]);
         int month = Integer.parseInt(dateArr[1]);
         int day = Integer.parseInt(dateArr[2]);
-        return year + "-" + month + "-" + day;
+        return Util.formatDate(year, month, day);
     }
 
     //FORECASTED WEATHER DATA
@@ -253,8 +261,8 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     @Override
     public String getForecastedImageUrl(String element) {
-        String imgId = JsonPath.read(element, "$.Day.IconPhrase");
-        return String.format(ConstHelper.ACCU_WEATHER_URL + ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION, imgId);
+        String imgId = JsonPath.read(element, "$.Day.Icon").toString();
+        return assembleAccuWeatherImageUrl(imgId);
     }
 
     @Override
@@ -305,7 +313,10 @@ public class AccuWeatherSource extends AbstractWeatherSource {
     @Override
     public String getForecastedDate(String element) {
         String dateStr = JsonPath.read(element, "$.Date");
-        return dateStr.split("T")[0];
+        String[] dateSplit = dateStr.split("T")[0].split("-");
+        return Util.formatDate(Integer.parseInt(dateSplit[0]),
+                Integer.parseInt(dateSplit[1]),
+                Integer.parseInt(dateSplit[2]));
     }
 
     @Override

@@ -16,10 +16,11 @@ import java.util.stream.Collectors;
 
 public class Weather2UmbrellaSource extends AbstractWeatherSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(Weather2UmbrellaSource.class);
+    public static final String WEATHER_PROVIDER_NAME = "W2UM";
     private final Map<String, Document> documents;
 
     public Weather2UmbrellaSource(List<String> cities) {
-        super("Weather2Umbrella Provider");
+        super(WEATHER_PROVIDER_NAME);
         LOGGER.info("Creating Weather2Umbrella Source");
 
         documents = cities.stream()
@@ -147,7 +148,7 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
         int year = Integer.parseInt(split[split.length -1]);
         int month = Util.monthNumberMap.get(split[split.length - 3].toLowerCase());
         int day = Integer.parseInt(StringUtils.remove(split[split.length -2],"."));
-        return year + "-" + month + "-" + day;
+        return Util.formatDate(year, month, day);
     }
 
     private double parseTemperature(Element dayMinTemp) {
@@ -199,7 +200,7 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
         int day = Integer.parseInt(dayLabel.split(" ")[1].substring(0, 2));
         int month = Util.monthNumberMap.get(dayLabel.split(" ")[2].trim().toLowerCase());
         int year = Calendar.getInstance().get(Calendar.YEAR);
-        return year + "-" + month + "-" + day;
+        return Util.formatDate(year, month, day);
     }
 
     @Override
@@ -211,7 +212,8 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
     @Override
     public String getForecastedDay(Element element) {
         String dayLabel = element.getElementsByClass("day_label").get(0).text();
-        return dayLabel.split(" ")[0].trim();
+        String dayString = dayLabel.split(" ")[0].trim();
+        return CyrillicLatinConverter.latinToCyrillic(dayString);
     }
 
     //NULLS NOT OVERRIDED NOT NEEDED
@@ -221,12 +223,10 @@ public class Weather2UmbrellaSource extends AbstractWeatherSource {
         return 0;
     }
 
-
     @Override
     public double getForecastedMinTemp(String city) {
         return 0;
     }
-
 
     @Override
     public double getForecastedWindSpeed(String city) {

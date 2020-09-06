@@ -4,21 +4,25 @@
 <div class="container">
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a id="accu" class="nav-link" [ngClass]="{'active': accuWeather === 'accu'}" [routerLink]=""
+      <a id="accu" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'accu'}" [routerLink]=""
          (click)="passTheSalt('accu')">AccuWeather</a>
     </li>
     <li class="nav-item">
-      <a id="w2u" class="nav-link" [ngClass]="{'active': accuWeather === 'w2u'}" [routerLink]=""
+      <a id="w2u" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'w2u'}" [routerLink]=""
          (click)="passTheSalt('w2u')" >Weather2Umbrella</a>
     </li>
     <li class="nav-item">
-      <a id="rhmz" class="nav-link" [ngClass]="{'active': accuWeather === 'rhmz'}" [routerLink]=""
-         (click)="passTheSalt('rhmz')">RHMZ</a>
+      <a id="rhmz" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'rhmz'}" [routerLink]=""
+         (click)="passTheSalt('rhmz')">РХМЗ</a>
+    </li>
+    <li class="nav-item">
+      <a id="combinedView" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'combined'}" [routerLink]=""
+         (click)="passTheSalt('combined')">Упоредни приказ</a>
     </li>
   </ul>
-  <weather-component [customTitle]="accuWeather"></weather-component>
+  <weather-component [customTitle]="weatherDisplayTitle"></weather-component>
 </div>
 <div class="jumbotron">
-  <h2>ETF Beograd Septembar 2020.</h2>
+  <h2>ЕТФ Београд Септембар 2020.</h2>
 </div>
 <router-outlet></router-outlet>
