@@ -1,61 +1,176 @@
-<div *ngIf="cityList !== undefined && cityList !== null">
+<div *ngIf="weatherData !== undefined && weatherData !== null">
 
-  <table class="table table-striped">
+  <h2>Тренутно време - {{weatherData.city}}</h2>
+  <table class="table table-current-weather" *ngIf="customTitle == 'accu' || customTitle == 'w2u' || customTitle == 'rhmz'">
     <thead>
     <tr>
-      <td scope="col">Извор података</td>
-      <td scope="col">{{getUrl(customTitle.toLocaleLowerCase())}}</td>
-    </tr>
-    <tr>
-      <th scope="col">Информације о времену</th>
-      <th scope="col">Вредности</th>
+      <th scope="col">Метрика</th>
+      <th scope="col">Вредност</th>
     </tr>
     </thead>
     <tbody>
     <tr>
       <td>Тренутна температура</td>
-      <td>{{cityList[0].currentWeather.currentTemp}}</td>
+      <td>{{weatherData.currentWeather.currentTemp}}</td>
     </tr>
     <tr>
       <td>Субјективни осћај</td>
-      <td>{{cityList[0].currentWeather.realFeel}}</td>
+      <td>{{weatherData.currentWeather.realFeel}}</td>
     </tr>
     <tr>
       <td>Влажност ваздуха</td>
-      <td>{{cityList[0].currentWeather.humidity}}</td>
+      <td>{{weatherData.currentWeather.humidity}}</td>
     </tr>
     <tr>
       <td>Ваздушни притисак</td>
-      <td>{{cityList[0].currentWeather.pressure}}</td>
+      <td>{{weatherData.currentWeather.pressure}}</td>
     </tr>
     <tr>
       <td>Ув индекс</td>
-      <td>{{cityList[0].currentWeather.uvIndex}}</td>
+      <td>{{weatherData.currentWeather.uvIndex}}</td>
     </tr>
     <tr>
       <td>Брзина ветра</td>
-      <td>{{cityList[0].currentWeather.windSpeed}}</td>
+      <td>{{weatherData.currentWeather.windSpeed}}</td>
     </tr>
     <tr>
       <td>Смер ветра</td>
-      <td>{{cityList[0].currentWeather.windDirection}}</td>
+      <td>{{weatherData.currentWeather.windDirection}}</td>
     </tr>
     <tr>
       <td>Опис прогнозе</td>
-      <td>{{cityList[0].currentWeather.description}}</td>
+      <td>{{weatherData.currentWeather.description}}</td>
     </tr>
     <tr>
       <td>Датум</td>
-      <td>{{cityList[0].currentWeather.date | date}}</td>
+      <td>{{weatherData.currentWeather.date | date}}</td>
     </tr>
     <tr>
       <td>Дан</td>
-      <td>{{cityList[0].currentWeather.day | date}}</td>
+      <td>{{weatherData.currentWeather.day}}</td>
     </tr>
     <tr>
       <td>Слика</td>
-      <td><img class="images" [src]="cityList[0].currentWeather.imageUrl"/></td>
+      <td><img class="images" [src]="weatherData.currentWeather.imageUrl"/></td>
     </tr>
+    </tbody>
+  </table>
+
+  <table class="table table-current-weather" *ngIf="customTitle == 'combined'">
+    <thead>
+    <tr>
+      <th scope="col">Дан/Метрика</th>
+      <th scope="col"> AccuWeather</th>
+      <th scope="col"> Weather2Umbrella</th>
+      <th scope="col"> Rhmz</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>Тренутна температура</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.currentTemp}}</td>
+    </tr>
+    <tr>
+      <td>Субјективни осћај</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.realFeel}}</td>
+    </tr>
+    <tr>
+      <td>Влажност ваздуха</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.humidity}}</td>
+    </tr>
+    <tr>
+      <td>Ваздушни притисак</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.pressure}}</td>
+    </tr>
+    <tr>
+      <td>Ув индекс</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.uvIndex}}</td>
+    </tr>
+    <tr>
+      <td>Брзина ветра</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.windSpeed}}</td>
+    </tr>
+    <tr>
+      <td>Смер ветра</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.windDirection}}</td>
+    </tr>
+    <tr>
+      <td>Опис прогнозе</td>
+      <td *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.description}}</td>
+    </tr>
+    <tr>
+      <td>Слика</td>
+      <td *ngFor="let weatherProvider of combinedWeatherData"><img class="images" [src]="weatherProvider.currentWeather.imageUrl"/></td>
+    </tr>
+    </tbody>
+  </table>
+
+  <h2>Прогноза времена:</h2>
+  <table class="table table-forecasted-weather" *ngIf="customTitle == 'accu' || customTitle == 'w2u' || customTitle == 'rhmz'">
+    <thead>
+    <tr>
+      <th scope="col">Дан/Метрика</th>
+      <th scope="col" *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{forecastedWeather.day}} {{forecastedWeather.date}}</th>
+    </tr>
+    </thead>
+    <tbody class="forecastTable">
+    <tr>
+      <td>Мин. темп.</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.minTemp }}</td>
+    </tr>
+    <tr>
+      <td>Макс. темп.</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.maxTemp }}</td>
+    </tr>
+    <tr>
+      <td>Брзина ветра</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.windSpeed }}</td>
+    </tr>
+    <tr>
+      <td>Правац ветра</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.windDirection }}</td>
+    </tr>
+    <tr>
+      <td>УВ Индекс</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.uvIndex }}</td>
+    </tr>
+    <tr>
+      <td>Опис времена</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.description }}</td>
+    </tr>
+    <tr>
+      <td>Слика</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast"><img class="forecasted-icons" [src]="forecastedWeather.imageUrl"/></td>
+    </tr>
+    </tbody>
+  </table>
+
+  <table class="table table-forecasted-weather" *ngIf="customTitle == 'combined'">
+    <thead>
+    <tr>
+      <th scope="col">Дан</th>
+      <th scope="col">Провајдер података</th>
+      <th scope="col">Мин. темп.</th>
+      <th scope="col">Макс. темп.</th>
+      <th scope="col">Брзина ветра</th>
+      <th scope="col">Правац ветра</th>
+      <th scope="col">Ув индекс</th>
+      <th scope="col">Опис</th>
+      <th scope="col">Слика</th>
+    </tr>
+    </thead>
+    <tbody class="forecastTable">
+      <tr *ngFor="let  dailyForecast of combinedForecastedData">
+        <td>{{dailyForecast.day}} {{dailyForecast.date}}</td>
+        <td>{{dailyForecast.provider}}</td>
+        <td>{{dailyForecast.minTemp}}</td>
+        <td>{{dailyForecast.maxTemp}}</td>
+        <td>{{dailyForecast.windSpeed}}</td>
+        <td>{{dailyForecast.windDirection}}</td>
+        <td>{{dailyForecast.uvIndex}}</td>
+        <td>{{dailyForecast.description}}</td>
+        <td><img _ngcontent-owr-c16="" class="images" src="{{dailyForecast.imageUrl}}"></td>
+      </tr>
     </tbody>
   </table>
 </div>

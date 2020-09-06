@@ -1,4 +1,5 @@
 export class ForecastedWeather {
+    provider: string;
     minTemp: number;
     maxTemp: number;
     windSpeed: number;

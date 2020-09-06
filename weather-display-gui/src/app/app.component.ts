@@ -7,10 +7,10 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'weather-display-gui';
-  accuWeather = 'accu';
+  weatherDisplayTitle = 'accu';
 
     passTheSalt(id){
-            this.accuWeather = id;
+            this.weatherDisplayTitle = id;
             console.log(id);
        }
 }

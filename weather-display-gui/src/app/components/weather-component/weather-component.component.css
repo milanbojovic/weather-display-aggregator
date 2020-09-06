@@ -1,4 +1,13 @@
 .images {
-  max-height: 5%;
-  max-width: 5%;
+  max-height: 40px;
+  max-width: 40px;
+}
+.forecasted-icons {
+  max-height: 40px;
+  max-width: 40px;
+}
+
+.table-forecasted-weather {
+  text-align: center;
+  vertical-align: middle;
 }
