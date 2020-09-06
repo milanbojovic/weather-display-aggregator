@@ -6,11 +6,14 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'weather-display-gui';
-  weatherDisplayTitle = 'accu';
+  providerSource = 'accu';
+  currentCity = 'beograd';
 
-    passTheSalt(id){
-            this.weatherDisplayTitle = id;
-            console.log(id);
-       }
+  setProviderSource(id: string): void {
+    this.providerSource = id;
+  }
+
+  setCity(city: string): void{
+      this.currentCity = city;
+  }
 }

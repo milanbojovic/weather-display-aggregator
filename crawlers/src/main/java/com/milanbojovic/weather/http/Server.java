@@ -93,18 +93,6 @@ public class Server {
         });
     }
 
-    /*
-
-    private Route testRoute() {
-        return concat(
-                pathPrefix("nikola", () -> complete("nikola called")),
-                pathPrefix(PathMatchers.segment("milan").slash(), () ->
-                                extractUnmatchedPath(path -> complete("milan called with additional " + path))
-                ),
-                pathPrefix("milan", () -> complete("milan called"))
-        );
-    }
-    * */
     private Route createRhmzRoute() {
         return concat(
                 pathPrefix(PathMatchers.segment("rhmz").slash(), () ->

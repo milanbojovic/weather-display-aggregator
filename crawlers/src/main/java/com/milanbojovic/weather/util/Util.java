@@ -8,8 +8,8 @@ public class Util {
     public static final String CITY_NOVI_SAD = "novi sad";
     public static final String CITY_KRAGUJEVAC = "kragujevac";
     public static final String CITY_ZLATIBOR = "zlatibor";
-    public static final String CITY_PRISTINA = "pristina";
-    public static final String CITY_NIS = "nis";
+//    public static final String CITY_PRISTINA = "priština";
+    public static final String CITY_NIS = "niš";
 
     public static Map<String, String> translateDayToRsCyrilic;
     public static Map<String, Integer> monthNumberMap;
@@ -73,7 +73,7 @@ public class Util {
         map.put(CITY_NOVI_SAD, 298486);
         map.put(CITY_KRAGUJEVAC, 301638);
         map.put(CITY_ZLATIBOR, 1691350);
-        map.put(CITY_PRISTINA, 1672284);
+//        map.put(CITY_PRISTINA, 1672284);
         map.put(CITY_NIS, 299758);
         return map;
     }
@@ -84,7 +84,7 @@ public class Util {
         map.put(CITY_NOVI_SAD, 13168);
         map.put(CITY_KRAGUJEVAC, 13278);
         map.put(CITY_ZLATIBOR, 13367);
-        map.put(CITY_PRISTINA, 13481);
+//        map.put(CITY_PRISTINA, 13481);
         map.put(CITY_NIS, 13388);
         return map;
     }

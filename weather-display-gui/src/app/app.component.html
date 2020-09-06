@@ -4,23 +4,45 @@
 <div class="container">
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a id="accu" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'accu'}" [routerLink]=""
-         (click)="passTheSalt('accu')">AccuWeather</a>
+      <a id="accu" class="nav-link" [ngClass]="{'active': providerSource === 'accu'}" [routerLink]=""
+         (click)="setProviderSource('accu')">AccuWeather</a>
     </li>
     <li class="nav-item">
-      <a id="w2u" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'w2u'}" [routerLink]=""
-         (click)="passTheSalt('w2u')" >Weather2Umbrella</a>
+      <a id="w2u" class="nav-link" [ngClass]="{'active': providerSource === 'w2u'}" [routerLink]=""
+         (click)="setProviderSource('w2u')" >Weather2Umbrella</a>
     </li>
     <li class="nav-item">
-      <a id="rhmz" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'rhmz'}" [routerLink]=""
-         (click)="passTheSalt('rhmz')">РХМЗ</a>
+      <a id="rhmz" class="nav-link" [ngClass]="{'active': providerSource === 'rhmz'}" [routerLink]=""
+         (click)="setProviderSource('rhmz')">РХМЗ</a>
     </li>
     <li class="nav-item">
-      <a id="combinedView" class="nav-link" [ngClass]="{'active': weatherDisplayTitle === 'combined'}" [routerLink]=""
-         (click)="passTheSalt('combined')">Упоредни приказ</a>
+      <a id="combinedView" class="nav-link" [ngClass]="{'active': providerSource === 'combined'}" [routerLink]=""
+         (click)="setProviderSource('combined')">Упоредни приказ</a>
     </li>
   </ul>
-  <weather-component [customTitle]="weatherDisplayTitle"></weather-component>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a id="beograd" class="nav-link" [ngClass]="{'active': currentCity === 'beograd'}" [routerLink]=""
+         (click)="setCity('beograd')">Београд</a>
+    </li>
+    <li class="nav-item">
+      <a id="novi sad" class="nav-link" [ngClass]="{'active': currentCity === 'novi sad'}" [routerLink]=""
+         (click)="setCity('novi sad')" >Нови сад</a>
+    </li>
+    <li class="nav-item">
+      <a id="kragujevac" class="nav-link" [ngClass]="{'active': currentCity === 'kragujevac'}" [routerLink]=""
+         (click)="setCity('kragujevac')">Крагујевац</a>
+    </li>
+    <li class="nav-item">
+      <a id="nis" class="nav-link" [ngClass]="{'active': currentCity === 'nis'}" [routerLink]=""
+         (click)="setCity('nis')">Ниш</a>
+    </li>
+    <li class="nav-item">
+      <a id="zlatibor" class="nav-link" [ngClass]="{'active': currentCity === 'zlatibor'}" [routerLink]=""
+         (click)="setCity('zlatibor')">Златибор</a>
+    </li>
+  </ul>
+  <weather-component [providerSource]="providerSource" [city]="currentCity"></weather-component>
 </div>
 <div class="jumbotron">
   <h2>ЕТФ Београд Септембар 2020.</h2>

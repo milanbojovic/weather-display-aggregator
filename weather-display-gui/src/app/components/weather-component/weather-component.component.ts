@@ -2,7 +2,7 @@ import {Component, Input, OnInit, SimpleChanges} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {WeatherData} from '../../model/weather-data.model';
 import { Observable, forkJoin } from 'rxjs';
-import {ForecastedWeather} from "../../model/forecasted-weather.model";
+import {ForecastedWeather} from '../../model/forecasted-weather.model';
 
 
 @Component({
@@ -14,28 +14,36 @@ export class WeatherComponent implements OnInit {
 
     constructor(private http: HttpClient) { }
 
-    @Input()
-    customTitle: string;
+    @Input() providerSource: string;
+    @Input() city: string;
 
     weatherData: WeatherData = null;
     combinedWeatherData: WeatherData[] = null;
     combinedForecastedData: Array<ForecastedWeather> = [];
 
-    ngOnInit(): void {
-        this.customTitle = 'accu';
-        const apiUrl = 'http://localhost:8080/' + this.customTitle;
-        const test = this.http.get(apiUrl)
+  private readonly apiUrl = 'http://localhost:8080/';
+  private readonly apiRhmz = this.apiUrl + 'rhmz/';
+  private readonly apiW2u = this.apiUrl + 'w2u/';
+  private readonly apiAccu = this.apiUrl + 'accu/';
+
+  ngOnInit(): void {
+        this.providerSource = 'accu';
+        this.city = 'beograd';
+        const test = this.http.get(this.assembleCurrentlySelectedApiUrl())
           .subscribe((data: WeatherData) => {
             this.weatherData = data;
         });
     }
 
-    ngOnChanges(changes: SimpleChanges) {
-        const apiUrl = 'http://localhost:8080/' + this.customTitle;
-        if (this.customTitle === 'combined') {
-          const accuw: Observable <WeatherData> = this.http.get<WeatherData>('http://localhost:8080/accu');
-          const w2u: Observable <WeatherData> = this.http.get<WeatherData>('http://localhost:8080/w2u');
-          const rhmz: Observable<WeatherData> = this.http.get<WeatherData>('http://localhost:8080/rhmz');
+  private assembleCurrentlySelectedApiUrl(): string {
+    return this.apiUrl + this.providerSource + '/' + this.city;
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+        if (this.providerSource === 'combined') {
+          const accuw: Observable <WeatherData> = this.http.get<WeatherData>(this.apiAccu + this.city);
+          const w2u: Observable <WeatherData> = this.http.get<WeatherData>(this.apiW2u + this.city);
+          const rhmz: Observable<WeatherData> = this.http.get<WeatherData>(this.apiAccu + this.city);
 
           forkJoin([accuw, w2u, rhmz]).subscribe(combinedResults  => {
             this.combinedWeatherData = combinedResults;
@@ -43,17 +51,17 @@ export class WeatherComponent implements OnInit {
             console.log('console logging debug');
           });
         } else {
-          this.http.get(apiUrl).subscribe((data: WeatherData) => {
+          this.http.get(this.assembleCurrentlySelectedApiUrl()).subscribe((data: WeatherData) => {
               this.weatherData = data;
             });
         }
     }
 
-  private extractForecastLists(data: WeatherData[]) {
-    let resultArray = Array<ForecastedWeather>();
-    for (var i = 0; i < 4; i++) {
+  private extractForecastLists(data: WeatherData[]): Array<ForecastedWeather> {
+    const resultArray = Array<ForecastedWeather>();
+    for (let i = 0; i < 4; i++) {
       const provider: WeatherData = data[i];
-      for (var j = 0; j < 3; j++) {
+      for (let j = 0; j < 3; j++) {
         resultArray.push(data[j].weeklyForecast[i]);
       }
     }

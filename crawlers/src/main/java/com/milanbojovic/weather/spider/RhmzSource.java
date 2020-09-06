@@ -4,6 +4,7 @@ import com.milanbojovic.weather.data.DailyForecast;
 import com.milanbojovic.weather.util.ConstHelper;
 import com.milanbojovic.weather.util.CurrentWeatherColumnsEnum;
 import com.milanbojovic.weather.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cyrlat.CyrillicLatinConverter;
 import org.jsoup.nodes.Document;
@@ -75,22 +76,29 @@ public class RhmzSource extends AbstractWeatherSource {
         resultList.add(DailyForecast.builder().build());
         resultList.add(DailyForecast.builder().build());
 
+        resultList.forEach(dailyForecast -> {
+            dailyForecast.setWindDirection("N/A");
+            dailyForecast.setDescription("N/A");
+            dailyForecast.setDay("N/A");
+            dailyForecast.setProvider(WEATHER_PROVIDER_NAME);
+            dailyForecast.setImageUrl("https://icon-library.net/images/ban-icon/ban-icon-9.jpg");
+        });
+
         LOGGER.debug(format("Initializing weather data for %s.", weatherProvider));
         Elements weeklyForecast = getWeeklyForecast(city);
 
         for(int i = 0; i < weeklyForecast.size(); i++) {
             Element rowElement = weeklyForecast.get(i);
             Elements columnElements = rowElement.children();
-            for(int j = 2; j < rowElement.children().size() - 1; j++) {
+            for(int j = 2; j < rowElement.children().size() - 2; j++) {
                 Element currentElement = columnElements.get(j);
-                DailyForecast dailyForecast = resultList.get(j - 2);
+                DailyForecast dailyForecast = resultList.get(j - 1);
                 if (i == 0) dailyForecast.setMaxTemp(getDoubleVal(currentElement));
                 if (i == 1) dailyForecast.setMinTemp(getDoubleVal(currentElement));
                 if (i == 2) {
                     String imgUrl = currentElement.child(0).attr("src");
-                    dailyForecast.setImageUrl(ConstHelper.RHMZ_URL + "/repository/" + imgUrl.split("repository")[1]);
+                    dailyForecast.setImageUrl(ConstHelper.RHMZ_URL + "/repository" + imgUrl.split("repository")[1]);
                 }
-                dailyForecast.setProvider(WEATHER_PROVIDER_NAME);
                 dailyForecast.setDescription("N/A");
                 dailyForecast.setWindDirection("N/A");
             }
@@ -109,9 +117,10 @@ public class RhmzSource extends AbstractWeatherSource {
                 .get(0)
                 .children();
 
-        for(int i = 2; i < headColumns.size() - 1; i++) {
-            DailyForecast dailyForecast = resultList.get(i-2);
-            dailyForecast.setDay(headColumns.get(i).text().split(" ")[0]);
+        for(int i = 2; i < headColumns.size() - 2; i++) {
+            DailyForecast dailyForecast = resultList.get(i-1);
+            String rawDay = headColumns.get(i).text().split(" ")[0];
+            dailyForecast.setDay(StringUtils.capitalize(rawDay.toLowerCase()));
 
             int day = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[0]);
             int month = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[1]);
@@ -253,7 +262,7 @@ public class RhmzSource extends AbstractWeatherSource {
                 .text();
         String dateStr = heading.split(" ")[6];
         String[] split = dateStr.replace('.', ' ').split(" ");
-        int year = Integer.parseInt(split[2]);
+        int year = Integer.parseInt(split[1]);
         int month = Integer.parseInt(split[1]);
         int day = Integer.parseInt(split[0]);
         return Util.formatDate(year, month, day);

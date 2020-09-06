@@ -22,6 +22,8 @@
         <scala.binary.version>2.13</scala.binary.version>
         <lombok.version>1.18.12</lombok.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
+        <commons-math3.version>3.6.1</commons-math3.version>
+        <cyrillic-latin-convertor.version>1.0</cyrillic-latin-convertor.version>
     </properties>
 
     <build>
@@ -88,7 +90,13 @@
         <dependency>
             <groupId>com.cyrlat</groupId>
             <artifactId>cyrillic-latin-convertor</artifactId>
-            <version>1.0</version>
+            <version>${cyrillic-latin-convertor.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>${commons-math3.version}</version>
+        </dependency>
+
     </dependencies>
 </project>

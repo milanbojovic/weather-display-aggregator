@@ -1,7 +1,7 @@
 <div *ngIf="weatherData !== undefined && weatherData !== null">
 
   <h2>Тренутно време - {{weatherData.city}}</h2>
-  <table class="table table-current-weather" *ngIf="customTitle == 'accu' || customTitle == 'w2u' || customTitle == 'rhmz'">
+  <table class="table table-current-weather" *ngIf="providerSource == 'accu' || providerSource == 'w2u' || providerSource == 'rhmz'">
     <thead>
     <tr>
       <th scope="col">Метрика</th>
@@ -56,7 +56,7 @@
     </tbody>
   </table>
 
-  <table class="table table-current-weather" *ngIf="customTitle == 'combined'">
+  <table class="table table-current-weather" *ngIf="providerSource == 'combined'">
     <thead>
     <tr>
       <th scope="col">Дан/Метрика</th>
@@ -106,7 +106,7 @@
   </table>
 
   <h2>Прогноза времена:</h2>
-  <table class="table table-forecasted-weather" *ngIf="customTitle == 'accu' || customTitle == 'w2u' || customTitle == 'rhmz'">
+  <table class="table table-forecasted-weather" *ngIf="providerSource == 'accu' || providerSource == 'w2u' || providerSource == 'rhmz'">
     <thead>
     <tr>
       <th scope="col">Дан/Метрика</th>
@@ -145,7 +145,7 @@
     </tbody>
   </table>
 
-  <table class="table table-forecasted-weather" *ngIf="customTitle == 'combined'">
+  <table class="table table-forecasted-weather" *ngIf="providerSource == 'combined'">
     <thead>
     <tr>
       <th scope="col">Дан</th>

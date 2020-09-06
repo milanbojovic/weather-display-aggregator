@@ -6,6 +6,7 @@ import com.milanbojovic.weather.util.ConstHelper;
 import com.milanbojovic.weather.util.Util;
 import net.minidev.json.JSONValue;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.math3.util.Precision;
 import org.apache.http.client.utils.URIBuilder;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -199,7 +200,8 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     @Override
     public double getCurrentWindSpeed(String city) {
-        return JsonPath.read(getCurrentWeatherFor(city), "$[0].Wind.Speed.Metric.Value");
+        double speedInKmh = JsonPath.read(getCurrentWeatherFor(city), "$[0].Wind.Speed.Metric.Value");
+        return Precision.round(speedInKmh / 3.6, 2);
     }
 
     @Override
@@ -245,7 +247,8 @@ public class AccuWeatherSource extends AbstractWeatherSource {
 
     @Override
     public double getForecastedWindSpeed(String element) {
-        return JsonPath.read(element, "$.Day.Wind.Speed.Value");
+        double speedInKmh = JsonPath.read(element, "$.Day.Wind.Speed.Value");
+        return Precision.round(speedInKmh / 3.6, 2);
     }
 
     @Override
