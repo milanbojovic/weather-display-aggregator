@@ -1,68 +1,72 @@
-<!--   Header   -->
-<div class="jumbotron">
-  <h2>Веб апликација за прикупљање, агрегацију и приказивање података о временској прогнози</h2>
-</div>
-<!--   Content   -->
-<div class="content">
-  <div class="row">
-    <!--  Left div  -->
-    <div class="col left-navbar">
-      <nav class="navbar fixed-left">
-        <!--      <div class="col align-self-center">-->
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a id="beograd" class="nav-link" [ngClass]="{'active': currentCity === 'beograd'}" [routerLink]=""
-               (click)="setCity('beograd')">Београд</a>
-          </li>
-          <li class="nav-item">
-            <a id="novi sad" class="nav-link" [ngClass]="{'active': currentCity === 'novi sad'}" [routerLink]=""
-               (click)="setCity('novi sad')" >Нови Cад</a>
-          </li>
-          <li class="nav-item">
-            <a id="kragujevac" class="nav-link" [ngClass]="{'active': currentCity === 'kragujevac'}" [routerLink]=""
-               (click)="setCity('kragujevac')">Крагујевац</a>
-          </li>
-          <li class="nav-item">
-            <a id="niš" class="nav-link" [ngClass]="{'active': currentCity === 'niš'}" [routerLink]=""
-               (click)="setCity('niš')">Ниш</a>
-          </li>
-          <li class="nav-item">
-            <a id="zlatibor" class="nav-link" [ngClass]="{'active': currentCity === 'zlatibor'}" [routerLink]=""
-               (click)="setCity('zlatibor')">Златибор</a>
-          </li>
-        </ul>
-        <!--      </div>-->
-      </nav>
-    </div>
-    <!--  Center div  -->
-    <div class="col-10">
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a id="accu" class="nav-link" [ngClass]="{'active': providerSource === 'accu'}" [routerLink]=""
-             (click)="setProviderSource('accu')">AccuWeather</a>
-        </li>
-        <li class="nav-item">
-          <a id="w2u" class="nav-link" [ngClass]="{'active': providerSource === 'w2u'}" [routerLink]=""
-             (click)="setProviderSource('w2u')" >Weather2Umbrella</a>
-        </li>
-        <li class="nav-item">
-          <a id="rhmz" class="nav-link" [ngClass]="{'active': providerSource === 'rhmz'}" [routerLink]=""
-             (click)="setProviderSource('rhmz')">Rhmz</a>
-        </li>
-        <li class="nav-item">
-          <a id="combinedView" class="nav-link" [ngClass]="{'active': providerSource === 'combined'}" [routerLink]=""
-             (click)="setProviderSource('combined')">Uporedni prikaz</a>
-        </li>
-      </ul>
-      <weather-component [providerSource]="providerSource" [city]="currentCity"></weather-component>
-    </div>
-    <div class="col">
-      <!--      empty     -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark justify-content-center fixed-top">
+  <!-- Brand -->
+  <a class="navbar-brand" href="#"><img src="../assets/logo.png" alt="Logo" style="width:40px;"></a>
+
+  <!-- Links -->
+  <ul class="navbar-nav nav-pills">
+    <li class="nav-item">
+      <a id="accu" class="nav-link" [ngClass]="{'active': providerSource === 'accu'}" [routerLink]=""
+         (click)="setProviderSource('accu')">AccuWeather</a>
+    </li>
+    <li class="nav-item">
+      <a id="w2u" class="nav-link" [ngClass]="{'active': providerSource === 'w2u'}" [routerLink]=""
+         (click)="setProviderSource('w2u')" >Weather2Umbrella</a>
+    </li>
+    <li class="nav-item">
+      <a id="rhmz" class="nav-link" [ngClass]="{'active': providerSource === 'rhmz'}" [routerLink]=""
+         (click)="setProviderSource('rhmz')">Rhmz</a>
+    </li>
+    <li class="nav-item">
+      <a id="combinedView" class="nav-link" [ngClass]="{'active': providerSource === 'combined'}" [routerLink]=""
+         (click)="setProviderSource('combined')">Uporedni prikaz</a>
+    </li>
+    <!-- Dropdown -->
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+        Grad: {{currentCity[0].toUpperCase() + currentCity.slice(1) }}
+      </a>
+      <div class="dropdown-menu">
+        <a id="beograd" class="dropdown-item" [ngClass]="{'active': currentCity === 'beograd'}" [routerLink]=""
+           (click)="setCity('beograd')">Београд</a>
+        <a id="novi sad" class="dropdown-item" [ngClass]="{'active': currentCity === 'novi sad'}" [routerLink]=""
+           (click)="setCity('novi sad')" >Нови Cад</a>
+        <a id="kragujevac" class="dropdown-item" [ngClass]="{'active': currentCity === 'kragujevac'}" [routerLink]=""
+           (click)="setCity('kragujevac')">Крагујевац</a>
+        <a id="niš" class="dropdown-item" [ngClass]="{'active': currentCity === 'niš'}" [routerLink]=""
+           (click)="setCity('niš')">Ниш</a>
+        <a id="zlatibor" class="dropdown-item" [ngClass]="{'active': currentCity === 'zlatibor'}" [routerLink]=""
+           (click)="setCity('zlatibor')">Златибор</a>
+      </div>
+    </li>
+  </ul>
+</nav>
+  <div class="container-fluid">
+    <div class="row">
+      <!--  Left div  -->
+      <div class="col">
+      </div>
+      <!--  Center div  -->
+      <div class="col-10">
+        <br>
+        <br>
+        <br>
+        <br>
+        <weather-component [providerSource]="providerSource" [city]="currentCity"></weather-component>
+      </div>
+      <!-- Right div -->
+      <div class="col">
+      </div>
     </div>
   </div>
-</div>
-<!--   Footer   -->
-<div class="jumbotron">
-  <h2>ЕТФ Београд Септембар 2020.</h2>
-</div>
-<router-outlet></router-outlet>
+  <!--   Footer   -->
+  <div class="jumbotron">
+    <h2>ЕТФ Београд Септембар 2020.</h2>
+  </div>
+</html>
