@@ -36,7 +36,7 @@
     </tr>
     <tr>
       <td>Датум</td>
-      <td>{{weatherData.currentWeather.day}} - {{weatherData.currentWeather.date}}.</td>
+      <td>{{weatherData.currentWeather.date}}.</td>
     </tr>
     <tr>
       <td>Слика</td>
@@ -101,7 +101,7 @@
     <tr>
       <td>Датум</td>
       <td [ngClass]="{'weather2Umbrella':weatherData.weeklyForecast[0].provider === 'W2UM'}"
-          *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.day}} - {{weatherData.currentWeather.date}}.</td>
+          *ngFor="let weatherData of combinedWeatherData">{{weatherData.currentWeather.date}}.</td>
     </tr>
     <tr>
       <td>Слика</td>
@@ -117,45 +117,49 @@
     <tr>
       <th scope="col"></th>
       <th scope="col" *ngFor="let forecastedWeather of weatherData.weeklyForecast">
-        {{forecastedWeather.day === 'N/A'? weatherData.currentWeather.day : forecastedWeather.day }} <br>
-        {{forecastedWeather.date === null? weatherData.currentWeather.date : forecastedWeather.date}}.</th>
+        {{forecastedWeather.date === 'N/A'? weatherData.currentWeather.date.split('-')[0] : forecastedWeather.date.split('-')[0]}} <br>
+        {{forecastedWeather.date === 'N/A'? weatherData.currentWeather.date.split('-')[1] : forecastedWeather.date.split('-')[1]}}
+      </th>
     </tr>
     </thead>
     <tbody>
     <tr>
       <td>Мин. темп.</td>
       <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">
-        {{ forecastedWeather.day === 'N/A'? 'N/A' : forecastedWeather.minTemp }}
-        {{ forecastedWeather.day === 'N/A'? '' : '°C' }}
+        {{forecastedWeather.date === 'N/A'? 'N/A' : forecastedWeather.minTemp}}
       </td>
     </tr>
     <tr>
       <td>Макс. темп.</td>
       <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">
-        {{ forecastedWeather.day === 'N/A'? 'N/A' : forecastedWeather.maxTemp }}
-        {{ forecastedWeather.day === 'N/A'? '' : '°C' }}
+        {{forecastedWeather.date === 'N/A'? 'N/A' : forecastedWeather.maxTemp}}
+        {{forecastedWeather.date === 'N/A'? '' : '°C'}}
       </td>
     </tr>
     <tr>
       <td>Брзина ветра</td>
       <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">
-        {{ forecastedWeather.day === 'N/A'? 'N/A' : forecastedWeather.windSpeed }}
-        {{ forecastedWeather.day === 'N/A'? '' : 'm/s' }}
+        {{forecastedWeather.date === 'N/A'? 'N/A' : forecastedWeather.windSpeed}}
+        {{forecastedWeather.date === 'N/A'? '' : 'm/s'}}
       </td>
     </tr>
     <tr>
       <td>Смер ветра</td>
-      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.windDirection }}</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">
+        {{forecastedWeather.date === 'N/A'? 'N/A' : forecastedWeather.windDirection}}
+      </td>
     </tr>
     <tr>
       <td>УВ индекс</td>
       <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">
-        {{ forecastedWeather.day === 'N/A'? 'N/A' : forecastedWeather.uvIndex }}
+        {{forecastedWeather.date === 'N/A'? 'N/A' : forecastedWeather.uvIndex}}
       </td>
     </tr>
     <tr>
       <td>Опис</td>
-      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">{{ forecastedWeather.description }}</td>
+      <td *ngFor="let forecastedWeather of weatherData.weeklyForecast">
+        {{forecastedWeather.description}}
+      </td>
     </tr>
     <tr>
       <td>Слика</td>
@@ -184,23 +188,26 @@
     <tbody>
       <tr *ngFor="let  dailyForecast of combinedForecastedData"
           [ngClass]="{'weather2Umbrella':dailyForecast.provider === 'W2UM'}">
-        <td *ngIf="dailyForecast.provider === 'ACCU'" rowspan="3">{{dailyForecast.day}} <br> {{dailyForecast.date}}.</td>
+        <td *ngIf="dailyForecast.provider === 'ACCU'" rowspan="3">
+          {{dailyForecast.date.split('-')[0]}} <br/>
+          {{dailyForecast.date.split('-')[1]}}
+        </td>
         <td>{{dailyForecast.provider}}</td>
         <td>
-          {{ dailyForecast.day === 'N/A'? 'N/A' : dailyForecast.minTemp }}
-          {{ dailyForecast.day === 'N/A'? '' : '°C' }}
+          {{ dailyForecast.windDirection === 'N/A'? 'N/A' : dailyForecast.minTemp }}
+          {{ dailyForecast.windDirection === 'N/A'? '' : '°C' }}
         </td>
         <td>
-          {{ dailyForecast.day === 'N/A'? 'N/A' : dailyForecast.maxTemp }}
-          {{ dailyForecast.day === 'N/A'? '' : '°C' }}
+          {{ dailyForecast.windDirection === 'N/A'? 'N/A' : dailyForecast.maxTemp }}
+          {{ dailyForecast.windDirection === 'N/A'? '' : '°C' }}
         </td>
         <td>
-          {{ dailyForecast.day === 'N/A'? 'N/A' : dailyForecast.windSpeed }}
-          {{ dailyForecast.day === 'N/A'? '' : 'm/s' }}
+          {{ dailyForecast.windDirection === 'N/A'? 'N/A' : dailyForecast.windSpeed }}
+          {{ dailyForecast.windDirection === 'N/A'? '' : 'm/s' }}
         </td>
         <td>{{dailyForecast.windDirection}}</td>
         <td>
-          {{ dailyForecast.day === 'N/A'? 'N/A' : dailyForecast.uvIndex }}
+          {{ dailyForecast.windDirection === 'N/A'? 'N/A' : dailyForecast.uvIndex }}
         </td>
         <td>{{dailyForecast.description}}</td>
         <td>

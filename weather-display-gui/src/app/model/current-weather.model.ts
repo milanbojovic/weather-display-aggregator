@@ -9,5 +9,4 @@ export class CurrentWeather {
     description: string;
     imageUrl: string;
     date: string;
-    day: string;
 }

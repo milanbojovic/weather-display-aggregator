@@ -1,7 +1,6 @@
-package com.milanbojovic.weather.data;
+package com.milanbojovic.weather.data.model;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

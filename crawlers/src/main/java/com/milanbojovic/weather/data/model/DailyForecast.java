@@ -1,4 +1,4 @@
-package com.milanbojovic.weather.data;
+package com.milanbojovic.weather.data.model;
 
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +14,5 @@ public class DailyForecast {
     double uvIndex;
     String description;
     String date;
-    String day;
     String imageUrl;
 }

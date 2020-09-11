@@ -1,11 +1,14 @@
-package com.milanbojovic.weather.spider;
+package com.milanbojovic.weather.service;
 
-import com.milanbojovic.weather.data.DailyForecast;
+import com.milanbojovic.weather.client.HtmlClient;
+import com.milanbojovic.weather.data.extraction.CurrentWeatherExtractorRhm;
+import com.milanbojovic.weather.data.model.CurrentWeather;
+import com.milanbojovic.weather.data.model.DailyForecast;
 import com.milanbojovic.weather.util.ConstHelper;
 import com.milanbojovic.weather.util.CurrentWeatherColumnsEnum;
 import com.milanbojovic.weather.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyrlat.CyrillicLatinConverter;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,20 +23,20 @@ import java.util.stream.Collectors;
 import static java.lang.Double.parseDouble;
 import static java.lang.String.format;
 
-public class RhmzSource extends AbstractWeatherSource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RhmzSource.class);
-    public static final String WEATHER_PROVIDER_NAME = "RHMZ";
+public class RhmzService implements WeatherProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RhmzService.class);
+    public final String weatherProvider;
     public static final String CONTENT_MISSING_IMAGE_URL = "https://icon-library.net/images/error-icon-png/error-icon-png-4.jpg";
     private final Map<String, Document> documents;
 
-    public RhmzSource(List<String> cities) {
-        super(WEATHER_PROVIDER_NAME);
+    public RhmzService(List<String> cities) {
+        weatherProvider = "RHMZ";
         LOGGER.info("Creating Rhmz Source");
+        HtmlClient connectionClient = new HtmlClient();
 
         documents = createUriList(cities).stream()
-                .map(url -> this.requestUriToResponseDocTuple(url, RhmzSource::getResourcePath))
-                .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-        persistAllWeatherDataToMap(cities);
+                .map(connectionClient::provideStringDocumentPair)
+                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     }
 
     private List<String> createUriList(List<String> cities) {
@@ -42,23 +45,46 @@ public class RhmzSource extends AbstractWeatherSource {
                 .map(Util.rhmzLocationIdMap::get)
                 .map(x -> format(ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_FIVE_DAY_FORECAST, x))
                 .collect(Collectors.toList());
-        dailyForecastUris.addAll(Arrays.asList(
-                ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER,
-                ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_UV_INDEX
-        ));
+        dailyForecastUris.addAll(currentWeatherUris());
         return dailyForecastUris;
     }
 
-    private static String getResourcePath(String uri) {
-        return uri.split(ConstHelper.RHMZ_URL)[1];
+    private List<String> currentWeatherUris() {
+        return Arrays.asList(
+                ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER,
+                ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_UV_INDEX
+        );
+    }
+
+    @Override
+    public CurrentWeather provideCurrentWeather(String city) {
+        LOGGER.debug(String.format("Initializing current weather data for source=[%s], City=[%s]", weatherProvider, city));
+        Element currentWeatherFor = getCurrentWeatherFor(city);
+        String dateLine = getCurrentDateFor(city);
+        CurrentWeatherExtractorRhm currentWeatherExtractorRhm = new CurrentWeatherExtractorRhm(currentWeatherFor, dateLine);
+        return currentWeatherExtractorRhm.extract();
+    }
+
+    @Override
+    public List<DailyForecast> provideWeeklyForecast(String city) {
+        return initializeDailyForecast(city);
     }
 
     private Element getCurrentWeatherFor(String city) {
         LOGGER.debug(MessageFormat.format("Fetching current weather data for {0}", city));
-        Document currentWeather = documents.get(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER);
+        Document currentWeather = documents.get(ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER);
         Elements citiesTable = getCurrentWeatherForAllCities(currentWeather);
         return findCity(citiesTable, city);
     }
+
+    private String getCurrentDateFor(String city) {
+        LOGGER.debug(MessageFormat.format("Fetching current weather data for {0}", city));
+        return documents.get(ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER)
+                .getElementById("sadrzaj")
+                .getElementsByTag("h1").get(0)
+                .text();
+    }
+
 
     private Element getFiveDayWeatherFor(String city) {
         LOGGER.debug(format("Fetching weekly weather data for %s", city));
@@ -67,7 +93,6 @@ public class RhmzSource extends AbstractWeatherSource {
         return findCity(citiesTable, city);
     }
 
-    @Override
     protected List<DailyForecast> initializeDailyForecast(String city) {
         city = city.toLowerCase();
         List<DailyForecast> resultList = new ArrayList<>();
@@ -80,9 +105,9 @@ public class RhmzSource extends AbstractWeatherSource {
         resultList.forEach(dailyForecast -> {
             dailyForecast.setWindDirection("N/A");
             dailyForecast.setDescription("N/A");
-            dailyForecast.setDay("N/A");
-            dailyForecast.setProvider(WEATHER_PROVIDER_NAME);
+            dailyForecast.setProvider(weatherProvider);
             dailyForecast.setImageUrl(CONTENT_MISSING_IMAGE_URL);
+            dailyForecast.setDate("N/A");
         });
 
         LOGGER.debug(format("Initializing weather data for %s.", weatherProvider));
@@ -107,6 +132,7 @@ public class RhmzSource extends AbstractWeatherSource {
 
         //Set day/date
         Document weeklyForecastDoc = documents.get(
+                ConstHelper.RHMZ_URL +
                 format(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_FIVE_DAY_FORECAST,
                         Util.rhmzLocationIdMap.get(city)));
 
@@ -121,12 +147,11 @@ public class RhmzSource extends AbstractWeatherSource {
         for(int i = 2; i < headColumns.size() - 2; i++) {
             DailyForecast dailyForecast = resultList.get(i-1);
             String rawDay = headColumns.get(i).text().split(" ")[0];
-            dailyForecast.setDay(StringUtils.capitalize(rawDay.toLowerCase()));
 
             int day = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[0]);
             int month = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[1]);
             int year = Calendar.getInstance().get(Calendar.YEAR);
-            dailyForecast.setDate(Util.formatDate(year, month, day));
+            dailyForecast.setDate(StringUtils.capitalize(rawDay.toLowerCase()) + " - " + Util.formatDate(year, month, day));
         }
         return resultList;
     }
@@ -153,10 +178,11 @@ public class RhmzSource extends AbstractWeatherSource {
                 .collect(Collectors.toCollection(Elements::new));
     }
 
-    @Override
+
     protected Elements getWeeklyForecast(String city) {
         LOGGER.debug(format("Fetching weekly weather data for %s", city));
         Document weeklyForecast = documents.get(
+                ConstHelper.RHMZ_URL +
                 format(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_FIVE_DAY_FORECAST,
                         Util.rhmzLocationIdMap.get(city)));
         return getDailyForecastForCityTable(weeklyForecast);
@@ -169,13 +195,6 @@ public class RhmzSource extends AbstractWeatherSource {
         return findCity(uvIndexTable, city);
     }
 
-    @Override
-    protected double getCurrentTemp(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        String temperature = getColumnValue(cityElement, CurrentWeatherColumnsEnum.TEMPERATURE);
-        return parseDouble(temperature);
-    }
-
     private Element findCity(Elements citiesTable, String city) {
         final String cityTranslation = CyrillicLatinConverter.latinToCyrillic(city);
         List<Element> collect = citiesTable.stream()
@@ -183,17 +202,17 @@ public class RhmzSource extends AbstractWeatherSource {
                 .collect(Collectors.toList());
         return collect.isEmpty()? null : collect.get(0);
     }
-
-    private String getColumnValue(Element city, CurrentWeatherColumnsEnum column) {
-        return city.child(column.ordinal()).text();
-    }
-
+//
     private Elements getCurrentWeatherForAllCities(Document currentWeather) {
         return currentWeather
                 .getElementsByAttributeValue(ConstHelper.W2U_SUMMARY, ConstHelper.RHMZ_CURRENT_WEATHER_ALL_CITIES_TABLE)
                 .get(0)
                 .getElementsByTag(ConstHelper.RHMZ_TAG_TBODY).get(0)
                 .children();
+    }
+
+    private String getColumnValue(Element city, CurrentWeatherColumnsEnum column) {
+        return city.child(column.ordinal()).text();
     }
 
     private Elements getUvIndexForAllCities(Document currentWeather) {
@@ -203,160 +222,6 @@ public class RhmzSource extends AbstractWeatherSource {
                 .children();
     }
 
-    @Override
-    public double getCurrentRealFeel(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        String realFeel = getColumnValue(cityElement, CurrentWeatherColumnsEnum.REAL_FEEL);
-        return parseDouble(realFeel);
-    }
-
-    @Override
-    public int getCurrentHumidity(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        String humidity = getColumnValue(cityElement, CurrentWeatherColumnsEnum.HUMIDITY);
-        return Integer.parseInt(humidity);
-    }
-
-    @Override
-    public double getCurrentPressure(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        String pressure = getColumnValue(cityElement, CurrentWeatherColumnsEnum.PRESSURE);
-        return parseDouble(pressure);
-    }
-
-    @Override
-    public double getCurrentUvIndex(String city) {
-        Element uvElem = getUvIndexWeatherFor(city);
-        return uvElem == null ? 0 : parseDouble(uvElem.child(1).text());
-    }
-
-    @Override
-    public double getCurrentWindSpeed(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        String windSpeedStr = getColumnValue(cityElement, CurrentWeatherColumnsEnum.WIND_SPEED);
-        double windSpeed = 0;
-        try{
-            windSpeed = parseDouble(windSpeedStr);
-        } catch (NumberFormatException e) {
-            LOGGER.error(String.format("Error while converting wind speed value to double: %s", windSpeedStr));
-        }
-        return windSpeed;
-    }
-
-    @Override
-    public String getCurrentWindDirection(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        return getColumnValue(cityElement, CurrentWeatherColumnsEnum.WIND_DIRECTION);
-    }
-
-    @Override
-    public String getCurrentDescription(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        return getColumnValue(cityElement, CurrentWeatherColumnsEnum.DESCRIPTION);
-    }
-
-    @Override
-    public String getCurrentDate(String city) {
-        String heading = documents.get(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER)
-                .getElementById("sadrzaj")
-                .getElementsByTag("h1").get(0)
-                .text();
-        String dateStr = heading.split(" ")[6];
-        String[] split = dateStr.split("\\.");
-        int year = Integer.parseInt(split[2]);
-        int month = Integer.parseInt(split[1]);
-        int day = Integer.parseInt(split[0]);
-        return Util.formatDate(year, month, day);
-    }
-
-    @Override
-    public String getCurrentImageUrl(String city) {
-        Element cityElement = getCurrentWeatherFor(city);
-        String imgUrl = cityElement
-                .child(CurrentWeatherColumnsEnum.IMAGE.ordinal())
-                .childNode(1)
-                .attr("src");
-        return ConstHelper.RHMZ_URL + "/repository/" + imgUrl.split("repository")[1];
-    }
-
-    @Override
-    public double getForecastedMinTemp(Element element) {
-        return 0;
-    }
-
-    @Override
-    public double getForecastedMaxTemp(Element element) {
-        return 0;
-    }
-
-    @Override
-    public double getForecastedWindSpeed(Element element) {
-        return 0;
-    }
-
-    @Override
-    public String getForecastedWindDirection(Element element) {
-        return null;
-    }
-
-    @Override
-    public double getForecastedUvIndex(Element element) {
-        return 0;
-    }
-
-    @Override
-    public String getForecastedDescription(Element element) {
-        return null;
-    }
-
-    @Override
-    public String getForecastedDate(Element element) {
-        return null;
-    }
-
-    @Override
-    public String getForecastedImageUrl(Element element) {
-        return null;
-    }
-
-    @Override
-    public String getForecastedDay(Element element) {
-        return null;
-    }
-
-    //NULLS NOT OVERRIDED NOT NEEDED
-
-    @Override
-    public double getForecastedMinTemp(String json) {
-        return 0;
-    }
-
-    @Override
-    public double getForecastedMaxTemp(String city) {
-        return 0;
-    }
-
-    @Override
-    public double getForecastedWindSpeed(String json) {
-        return 0;
-    }
-
-    @Override
-    public String getForecastedWindDirection(String json) {
-        return null;
-    }
-
-    @Override
-    public double getForecastedUvIndex(String json) {
-        return 0;
-    }
-
-    @Override
-    public String getForecastedDescription(String json) {
-        return null;
-    }
-
-    @Override
     public String getForecastedDate(String city) {
         Element citiesFiveDayTable = getFiveDayWeatherFor(city);
         String h1 = citiesFiveDayTable.getElementsByTag("h1").text();
@@ -365,17 +230,5 @@ public class RhmzSource extends AbstractWeatherSource {
         int month = Integer.parseInt(date.substring(3,5));
         int year = Integer.parseInt(date.substring(6,10));
         return Util.formatDate(year, month, day);
-    }
-
-    @Override
-    public String getForecastedImageUrl(String json) {
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        return "RhmzSource{" +
-                "weatherDataMap=" + weatherDataMap +
-                '}';
     }
 }

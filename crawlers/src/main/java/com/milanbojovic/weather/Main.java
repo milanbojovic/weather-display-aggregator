@@ -1,7 +1,7 @@
 package com.milanbojovic.weather;
 
+
 import com.milanbojovic.weather.http.Server;
-import com.milanbojovic.weather.spider.RhmzSource;
 import com.milanbojovic.weather.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

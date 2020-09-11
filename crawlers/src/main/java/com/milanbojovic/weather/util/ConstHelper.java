@@ -28,6 +28,8 @@ public class ConstHelper {
     public static final String ACCU_WEATHER_QUERY_PARAM_DETAILS_NEEDED = "details";
     public static final String ACCU_WEATHER_QUERY_PARAM_METRIC = "metric";
     public static final String ACCU_WEATHER_QUERY_PARAM_LANGUAGE = "language";
+    public static final String ACCU_WEATHER_FIVE_DAY_FORECAST = "/forecasts/v1/daily/5day/";
+    public static final String ACCU_WEATHER_CURRENT_WEATHER = "/currentconditions/v1/";
 
     //Weather2Umbrella
     public static final String W2U_URL = "https://www.weather2umbrella.com";

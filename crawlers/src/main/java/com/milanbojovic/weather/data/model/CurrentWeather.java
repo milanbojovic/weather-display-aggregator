@@ -1,9 +1,7 @@
-package com.milanbojovic.weather.data;
+package com.milanbojovic.weather.data.model;
 
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.Date;
 
 @Data
 @Builder
@@ -18,6 +16,5 @@ public class CurrentWeather {
     String description;
     String imageUrl;
     String date;
-    String day;
 }
 

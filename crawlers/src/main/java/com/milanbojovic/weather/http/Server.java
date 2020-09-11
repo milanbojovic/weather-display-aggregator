@@ -12,11 +12,11 @@ import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.milanbojovic.weather.data.WeatherData;
-import com.milanbojovic.weather.spider.AbstractWeatherSource;
-import com.milanbojovic.weather.spider.AccuWeatherSource;
-import com.milanbojovic.weather.spider.RhmzSource;
-import com.milanbojovic.weather.spider.Weather2UmbrellaSource;
+import com.milanbojovic.weather.data.model.WeatherData;
+import com.milanbojovic.weather.service.AccuWeatherService;
+import com.milanbojovic.weather.service.RhmzService;
+import com.milanbojovic.weather.service.Weather2UmbrellaService;
+import com.milanbojovic.weather.service.WeatherProvider;
 import com.milanbojovic.weather.util.ConstHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,18 +34,18 @@ import static akka.http.javadsl.server.Directives.*;
 
 public class Server {
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
-    private final RhmzSource rhmzSource;
-    private final AccuWeatherSource accuSource;
-    private final Weather2UmbrellaSource w2uSource;
+    private final RhmzService rhmzService;
+    private final AccuWeatherService accuSource;
+    private final Weather2UmbrellaService w2uSource;
 
     public Server(List<String> citiesList) throws IOException {
         LOGGER.debug("Creating ActorSystem.");
         ActorSystem system = ActorSystem.create("routes");
         final Http http = Http.get(system);
 
-        rhmzSource = new RhmzSource(citiesList);
-        accuSource = new AccuWeatherSource(citiesList);
-        w2uSource = new Weather2UmbrellaSource(citiesList);
+        rhmzService = new RhmzService(citiesList);
+        accuSource = new AccuWeatherService(citiesList);
+        w2uSource = new Weather2UmbrellaService(citiesList);
 
         final CompletionStage<ServerBinding> binding = startHttpServer(http);
 
@@ -96,7 +96,7 @@ public class Server {
     private Route createRhmzRoute() {
         return concat(
                 pathPrefix(PathMatchers.segment("rhmz").slash(), () ->
-                    extractUnmatchedPath(city -> getAllWeatherDataFrom(rhmzSource, city))
+                    extractUnmatchedPath(city -> getAllWeatherDataFrom(rhmzService, city))
                 )
         );
     }
@@ -117,10 +117,10 @@ public class Server {
         );
     }
 
-    private Route getAllWeatherDataFrom(AbstractWeatherSource source, String city) {
-        LOGGER.debug("Getting all weather data for source: %s, city: %s", source.getWeatherProvider(), city);
+    private Route getAllWeatherDataFrom(WeatherProvider source, String city) {
+        LOGGER.debug("Getting all weather data for source: %s, city: %s", city);
         String cityDecoded = URLDecoder.decode(StringUtils.capitalize(city));
-        WeatherData cityWeather = source.getWeatherDataMap().get(cityDecoded);
+        WeatherData cityWeather = source.provideWeather(city);
         try {
             return complete(new ObjectMapper().writeValueAsString(cityWeather));
         } catch (JsonProcessingException e) {

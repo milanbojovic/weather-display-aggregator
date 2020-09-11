@@ -7,6 +7,5 @@ export class ForecastedWeather {
     uvIndex: number;
     description: string;
     date: string;
-    day: string;
     imageUrl: string;
 }
