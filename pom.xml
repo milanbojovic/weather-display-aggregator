@@ -13,7 +13,7 @@
         <module>docker</module>
         <module>cyrillic-latin-convertor</module>
         <module>weather-display-gui</module>
-        <module>crawlers</module>
+        <module>weather-display-backend</module>
     </modules>
     <dependencies>
         <dependency>
