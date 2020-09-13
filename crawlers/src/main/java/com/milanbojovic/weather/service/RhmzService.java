@@ -1,9 +1,12 @@
 package com.milanbojovic.weather.service;
 
 import com.milanbojovic.weather.client.HtmlClient;
+import com.milanbojovic.weather.config.AppConfig;
+import com.milanbojovic.weather.data.MongoDao;
 import com.milanbojovic.weather.data.extraction.CurrentWeatherExtractorRhm;
 import com.milanbojovic.weather.data.model.CurrentWeather;
 import com.milanbojovic.weather.data.model.DailyForecast;
+import com.milanbojovic.weather.data.model.WeatherData;
 import com.milanbojovic.weather.util.ConstHelper;
 import com.milanbojovic.weather.util.CurrentWeatherColumnsEnum;
 import com.milanbojovic.weather.util.Util;
@@ -15,6 +18,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.util.*;
@@ -23,27 +28,38 @@ import java.util.stream.Collectors;
 import static java.lang.Double.parseDouble;
 import static java.lang.String.format;
 
+@Service
 public class RhmzService implements WeatherProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(RhmzService.class);
+    private final AppConfig appConfig;
+    private final MongoDao mongoDao;
+
     public final String weatherProvider;
-    public static final String CONTENT_MISSING_IMAGE_URL = "https://icon-library.net/images/error-icon-png/error-icon-png-4.jpg";
     private final Map<String, Document> documents;
 
-    public RhmzService(List<String> cities) {
-        weatherProvider = "RHMZ";
+    @Autowired
+    public RhmzService(AppConfig appConfig, MongoDao mongoDao) {
         LOGGER.info("Creating Rhmz Source");
+        this.appConfig = appConfig;
+        this.mongoDao = mongoDao;
+        weatherProvider = "RHMZ";
         HtmlClient connectionClient = new HtmlClient();
+        List<String> citiesList = appConfig.getCities();
 
-        documents = createUriList(cities).stream()
+        documents = createUriList(citiesList).stream()
                 .map(connectionClient::provideStringDocumentPair)
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+        persistWeatherDataToDb(mongoDao, citiesList, weatherProvider);
     }
 
     private List<String> createUriList(List<String> cities) {
         List<String> dailyForecastUris = cities.stream()
                 .map(String::toLowerCase)
                 .map(Util.rhmzLocationIdMap::get)
-                .map(x -> format(ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_FIVE_DAY_FORECAST, x))
+                .map(x -> format(MessageFormat.format("{0}{1}{2}",
+                        appConfig.getRhmzUrl(),
+                        ConstHelper.RHMZ_URI_PATH,
+                        appConfig.getRhmzWeeklyForecast()), x))
                 .collect(Collectors.toList());
         dailyForecastUris.addAll(currentWeatherUris());
         return dailyForecastUris;
@@ -51,8 +67,8 @@ public class RhmzService implements WeatherProvider {
 
     private List<String> currentWeatherUris() {
         return Arrays.asList(
-                ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER,
-                ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_UV_INDEX
+                appConfig.getRhmzUrl() + ConstHelper.RHMZ_URI_PATH + appConfig.getRhmzCurrentWeather(),
+                appConfig.getRhmzUrl() + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_UV_INDEX
         );
     }
 
@@ -61,7 +77,7 @@ public class RhmzService implements WeatherProvider {
         LOGGER.debug(String.format("Initializing current weather data for source=[%s], City=[%s]", weatherProvider, city));
         Element currentWeatherFor = getCurrentWeatherFor(city);
         String dateLine = getCurrentDateFor(city);
-        CurrentWeatherExtractorRhm currentWeatherExtractorRhm = new CurrentWeatherExtractorRhm(currentWeatherFor, dateLine);
+        CurrentWeatherExtractorRhm currentWeatherExtractorRhm = new CurrentWeatherExtractorRhm(currentWeatherFor, dateLine, appConfig);
         return currentWeatherExtractorRhm.extract();
     }
 
@@ -70,16 +86,23 @@ public class RhmzService implements WeatherProvider {
         return initializeDailyForecast(city);
     }
 
+
+    @Override
+    public WeatherData fetchPersistedWeatherData(String city) {
+        return mongoDao.readWeatherData(city, weatherProvider);
+    }
+
     private Element getCurrentWeatherFor(String city) {
         LOGGER.debug(MessageFormat.format("Fetching current weather data for {0}", city));
-        Document currentWeather = documents.get(ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER);
+
+        Document currentWeather = documents.get(appConfig.getRhmzUrl() + ConstHelper.RHMZ_URI_PATH + appConfig.getRhmzCurrentWeather());
         Elements citiesTable = getCurrentWeatherForAllCities(currentWeather);
         return findCity(citiesTable, city);
     }
 
     private String getCurrentDateFor(String city) {
         LOGGER.debug(MessageFormat.format("Fetching current weather data for {0}", city));
-        return documents.get(ConstHelper.RHMZ_URL + ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER)
+        return documents.get(appConfig.getRhmzUrl() + ConstHelper.RHMZ_URI_PATH + appConfig.getRhmzCurrentWeather())
                 .getElementById("sadrzaj")
                 .getElementsByTag("h1").get(0)
                 .text();
@@ -88,7 +111,10 @@ public class RhmzService implements WeatherProvider {
 
     private Element getFiveDayWeatherFor(String city) {
         LOGGER.debug(format("Fetching weekly weather data for %s", city));
-        Document weeklyForecast = documents.get(format(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_FIVE_DAY_FORECAST, city));
+        Document weeklyForecast = documents.get(format(MessageFormat.format("{0}{1}",
+                ConstHelper.RHMZ_URI_PATH,
+                appConfig.getRhmzWeeklyForecast()),
+                city));
         Elements citiesTable = getDailyForecastForCityTable(weeklyForecast);
         return findCity(citiesTable, city);
     }
@@ -106,7 +132,7 @@ public class RhmzService implements WeatherProvider {
             dailyForecast.setWindDirection("N/A");
             dailyForecast.setDescription("N/A");
             dailyForecast.setProvider(weatherProvider);
-            dailyForecast.setImageUrl(CONTENT_MISSING_IMAGE_URL);
+            dailyForecast.setImageUrl(appConfig.getRhmzContentNotFoundImage());
             dailyForecast.setDate("N/A");
         });
 
@@ -123,7 +149,7 @@ public class RhmzService implements WeatherProvider {
                 if (i == 1) dailyForecast.setMinTemp(getDoubleVal(currentElement));
                 if (i == 2) {
                     String imgUrl = currentElement.child(0).attr("src");
-                    dailyForecast.setImageUrl(ConstHelper.RHMZ_URL + "/repository" + imgUrl.split("repository")[1]);
+                    dailyForecast.setImageUrl(appConfig.getRhmzUrl() + "/repository" + imgUrl.split("repository")[1]);
                 }
                 dailyForecast.setDescription("N/A");
                 dailyForecast.setWindDirection("N/A");
@@ -132,8 +158,10 @@ public class RhmzService implements WeatherProvider {
 
         //Set day/date
         Document weeklyForecastDoc = documents.get(
-                ConstHelper.RHMZ_URL +
-                format(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_FIVE_DAY_FORECAST,
+                appConfig.getRhmzUrl() +
+                format(MessageFormat.format("{0}{1}",
+                        ConstHelper.RHMZ_URI_PATH,
+                        appConfig.getRhmzWeeklyForecast()),
                         Util.rhmzLocationIdMap.get(city)));
 
         Elements headColumns = weeklyForecastDoc.getElementsByAttributeValue(ConstHelper.W2U_SUMMARY, ConstHelper.RHMZ_FIVE_DAY_FORECAST_ALL_CITIES_TABLE)
@@ -182,8 +210,10 @@ public class RhmzService implements WeatherProvider {
     protected Elements getWeeklyForecast(String city) {
         LOGGER.debug(format("Fetching weekly weather data for %s", city));
         Document weeklyForecast = documents.get(
-                ConstHelper.RHMZ_URL +
-                format(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_FIVE_DAY_FORECAST,
+                appConfig.getRhmzUrl() +
+                format(MessageFormat.format("{0}{1}",
+                        ConstHelper.RHMZ_URI_PATH,
+                        appConfig.getRhmzWeeklyForecast()),
                         Util.rhmzLocationIdMap.get(city)));
         return getDailyForecastForCityTable(weeklyForecast);
     }

@@ -2,10 +2,13 @@ package com.milanbojovic.weather.service;
 
 import com.jayway.jsonpath.JsonPath;
 import com.milanbojovic.weather.client.ApiClient;
+import com.milanbojovic.weather.config.AppConfig;
+import com.milanbojovic.weather.data.MongoDao;
 import com.milanbojovic.weather.data.extraction.CurrentWeatherExtractorAcu;
 import com.milanbojovic.weather.data.extraction.DailyForecastExtractorAcu;
 import com.milanbojovic.weather.data.model.CurrentWeather;
 import com.milanbojovic.weather.data.model.DailyForecast;
+import com.milanbojovic.weather.data.model.WeatherData;
 import com.milanbojovic.weather.util.ConstHelper;
 import com.milanbojovic.weather.util.Util;
 import net.minidev.json.JSONValue;
@@ -13,6 +16,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -24,35 +29,41 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.MissingFormatArgumentException;
-import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@Service
 public class AccuWeatherService implements WeatherProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccuWeatherService.class);
+    private final AppConfig appConfig;
+    private final MongoDao mongoDao;
+
     private final String weatherProvider;
     private final Map<String, String> documents;
 
-    public AccuWeatherService(List<String> cities) {
-        weatherProvider = "ACCU";
+    @Autowired
+    public AccuWeatherService(AppConfig appConfig, MongoDao mongoDao) {
         LOGGER.info("Creating AccuWeather Source");
         ApiClient connectionClient = new ApiClient();
+        this.appConfig = appConfig;
+        this.mongoDao = mongoDao;
+        weatherProvider = "ACCU";
 
-        documents = cities.stream()
+        List<String> citiesList = appConfig.getCities();
+        documents = citiesList.stream()
                 .map(String::toLowerCase)
                 .map(this::createRequestForCity)
                 .flatMap(Collection::stream)
                 .map(connectionClient::provideStringStringPair)
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+        persistWeatherDataToDb(mongoDao, citiesList, weatherProvider);
     }
 
     @Override
     public CurrentWeather provideCurrentWeather(String city) {
         LOGGER.debug(String.format("Initializing current weather data for source=[%s], City=[%s]", weatherProvider, city));
-        String cityJson = documents.get(queryCityUrl(city, ConstHelper.ACCU_WEATHER_CURRENT_WEATHER));
-        CurrentWeatherExtractorAcu currentWeatherExtractorAcu = new CurrentWeatherExtractorAcu(cityJson);
+        String cityJson = documents.get(queryCityUrl(city, appConfig.getAccuWeatherCurrentWeather()));
+        CurrentWeatherExtractorAcu currentWeatherExtractorAcu = new CurrentWeatherExtractorAcu(cityJson, appConfig);
         return currentWeatherExtractorAcu.extract();
     }
 
@@ -63,7 +74,7 @@ public class AccuWeatherService implements WeatherProvider {
     @Override
     public List<DailyForecast> provideWeeklyForecast(String city) {
         LOGGER.debug(String.format("Initializing forecasted weather forecast for %s.", weatherProvider));
-        String query = queryCityUrl(city, ConstHelper.ACCU_WEATHER_FIVE_DAY_FORECAST);
+        String query = queryCityUrl(city, appConfig.getAccuWeatherWeeklyForecast());
         String weeklyForecastDocJson = documents.get(query);
         List<Map<String, Object>> weeklyForecastsStr = JsonPath.read(weeklyForecastDocJson, "$.DailyForecasts");
 
@@ -73,8 +84,13 @@ public class AccuWeatherService implements WeatherProvider {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public WeatherData fetchPersistedWeatherData(String city) {
+        return mongoDao.readWeatherData(city, weatherProvider);
+    }
+
     private DailyForecast mapToDailyForecast(String dailyForecast) {
-        DailyForecastExtractorAcu dailyForecastExtractorAcu = new DailyForecastExtractorAcu(dailyForecast);
+        DailyForecastExtractorAcu dailyForecastExtractorAcu = new DailyForecastExtractorAcu(dailyForecast, appConfig);
         DailyForecast extractedDailyForecast = dailyForecastExtractorAcu.extract();
         extractedDailyForecast.setProvider(weatherProvider);
         return extractedDailyForecast;
@@ -100,12 +116,11 @@ public class AccuWeatherService implements WeatherProvider {
     }
 
     private URI buildUri(String... path) {
-        Optional<String> apiKey = Optional.ofNullable(System.getenv(ConstHelper.ACCU_WEATHER_API_KEY_ENV_VAR));
         LOGGER.debug(MessageFormat.format("Building uris for {0}", weatherProvider));
         try {
-            return new URIBuilder(ConstHelper.ACCU_WEATHER_URL)
+            return new URIBuilder(appConfig.getAccuWeatherUrl())
                     .setPathSegments(path)
-                    .addParameter(ConstHelper.ACCU_WEATHER_QUERY_PARAM_API_KEY, apiKey.orElseThrow(missingEnvVarException()))
+                    .addParameter(ConstHelper.ACCU_WEATHER_QUERY_PARAM_API_KEY, appConfig.getAccuWeatherApiKey())
                     .addParameter(ConstHelper.ACCU_WEATHER_QUERY_PARAM_LANGUAGE, "sr-rs")
                     .addParameter(ConstHelper.ACCU_WEATHER_QUERY_PARAM_DETAILS_NEEDED, "true")
                     .addParameter(ConstHelper.ACCU_WEATHER_QUERY_PARAM_METRIC, "true")
@@ -114,11 +129,6 @@ public class AccuWeatherService implements WeatherProvider {
             LOGGER.error("Error unable to build URI. ", e);
         }
         return null;
-    }
-
-    private Supplier<MissingFormatArgumentException> missingEnvVarException() {
-        return () -> new MissingFormatArgumentException("Missing mandatory environment variable " +
-                "which should be passed as parameter [" + ConstHelper.ACCU_WEATHER_API_KEY_ENV_VAR + "]!");
     }
 
     private String mapToJson(Map<String, Object> map) {

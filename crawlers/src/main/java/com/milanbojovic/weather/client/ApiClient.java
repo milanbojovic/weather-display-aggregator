@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public class ApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiClient.class);
-    private HttpClient httpClient;
+    private final HttpClient httpClient;
 
     public ApiClient() {
         this.httpClient = HttpClient.newHttpClient();

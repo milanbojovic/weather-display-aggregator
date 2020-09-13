@@ -10,7 +10,7 @@ import java.util.Calendar;
 
 public class DailyForecastExtractorW2u implements DailyForecastExtractor {
 
-    private DailyForecast dailyForecast;
+    private final DailyForecast dailyForecast;
 
     public DailyForecastExtractorW2u(Element htmlDocument) {
         dailyForecast = createDailyForecastFor(htmlDocument);

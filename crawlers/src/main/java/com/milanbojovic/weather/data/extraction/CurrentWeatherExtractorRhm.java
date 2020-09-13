@@ -1,10 +1,9 @@
 package com.milanbojovic.weather.data.extraction;
 
 
-import com.jayway.jsonpath.JsonPath;
+import com.milanbojovic.weather.config.AppConfig;
 import com.milanbojovic.weather.data.extraction.template.html.CurrentWeatherExtractor;
 import com.milanbojovic.weather.data.model.CurrentWeather;
-import com.milanbojovic.weather.util.ConstHelper;
 import com.milanbojovic.weather.util.CurrentWeatherColumnsEnum;
 import com.milanbojovic.weather.util.Util;
 import org.jsoup.nodes.Element;
@@ -16,8 +15,10 @@ import static java.lang.Double.parseDouble;
 public class CurrentWeatherExtractorRhm implements CurrentWeatherExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CurrentWeatherExtractorRhm.class);
     CurrentWeather currentWeather;
+    private final AppConfig appConfig;
 
-    public CurrentWeatherExtractorRhm(Element htmlDocument, String dateHeader) {
+    public CurrentWeatherExtractorRhm(Element htmlDocument, String dateHeader, AppConfig appConfig) {
+        this.appConfig = appConfig;
         currentWeather = createCurrentWeatherFrom(htmlDocument, dateHeader);
     }
 
@@ -103,8 +104,7 @@ public class CurrentWeatherExtractorRhm implements CurrentWeatherExtractor {
                 .child(CurrentWeatherColumnsEnum.IMAGE.ordinal())
                 .childNode(1)
                 .attr("src");
-        return ConstHelper.RHMZ_URL + "/repository/" + imgUrl.split("repository")[1];
-
+        return appConfig.getRhmzUrl() + "/repository/" + imgUrl.split("repository")[1];
     }
 
     @Override
@@ -123,9 +123,11 @@ public class CurrentWeatherExtractorRhm implements CurrentWeatherExtractor {
         int year = Integer.parseInt(split[2]);
         int month = Integer.parseInt(split[1]);
         int day = Integer.parseInt(split[0]);
-        return getDayFromDateString(Util.formatDate(year, month, day)) + " - " + Util.formatDate(year, month, day);
+        String date = Util.formatDate(year, month, day);
+        return getDayFromDateString(date) + " - " + date;
     }
 
+    //TODOO
     /*
     @Override
     public String getCurrentDate(String city) {

@@ -1,6 +1,7 @@
 package com.milanbojovic.weather.data.extraction;
 
 import com.jayway.jsonpath.JsonPath;
+import com.milanbojovic.weather.config.AppConfig;
 import com.milanbojovic.weather.data.extraction.template.api.CurrentWeatherExtractor;
 import com.milanbojovic.weather.data.model.CurrentWeather;
 import com.milanbojovic.weather.util.ConstHelper;
@@ -8,11 +9,14 @@ import org.apache.commons.math3.util.Precision;
 import org.cyrlat.CyrillicLatinConverter;
 
 public class CurrentWeatherExtractorAcu implements CurrentWeatherExtractor {
-    private CurrentWeather currentWeather;
+    private final CurrentWeather currentWeather;
+    private final AppConfig appConfig;
 
-    public CurrentWeatherExtractorAcu(String city) {
+    public CurrentWeatherExtractorAcu(String city, AppConfig appConfig) {
+        this.appConfig = appConfig;
         currentWeather = createCurrentWeatherFrom(city);
     }
+
 
     public CurrentWeather extract() {
         return currentWeather;
@@ -63,7 +67,7 @@ public class CurrentWeatherExtractorAcu implements CurrentWeatherExtractor {
 
     private String assembleAccuWeatherImageUrl(String imgId) {
         return String.format(
-                String.format("%s%s", ConstHelper.ACCU_WEATHER_IMAGE_URL, ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION),
+                String.format("%s%s", appConfig.getAccuWeatherImageFetchUrl(), ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION),
                 String.format("%02d", Integer.parseInt(imgId)));
     }
     

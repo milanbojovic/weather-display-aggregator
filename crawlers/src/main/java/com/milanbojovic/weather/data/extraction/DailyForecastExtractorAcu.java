@@ -1,6 +1,7 @@
 package com.milanbojovic.weather.data.extraction;
 
 import com.jayway.jsonpath.JsonPath;
+import com.milanbojovic.weather.config.AppConfig;
 import com.milanbojovic.weather.data.extraction.template.api.DailyForecastExtractor;
 import com.milanbojovic.weather.data.model.DailyForecast;
 import com.milanbojovic.weather.util.ConstHelper;
@@ -9,8 +10,10 @@ import org.cyrlat.CyrillicLatinConverter;
 
 public class DailyForecastExtractorAcu implements DailyForecastExtractor {
     private final DailyForecast dailyForecast;
+    private final AppConfig appConfig;
 
-    public DailyForecastExtractorAcu(String city) {
+    public DailyForecastExtractorAcu(String city, AppConfig appConfig) {
+        this.appConfig = appConfig;
         this.dailyForecast = createDailyForecastFor(city);
     }
 
@@ -78,7 +81,7 @@ public class DailyForecastExtractorAcu implements DailyForecastExtractor {
 
     private String assembleAccuWeatherImageUrl(String imgId) {
         return String.format(
-                String.format("%s%s", ConstHelper.ACCU_WEATHER_IMAGE_URL, ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION),
+                String.format("%s%s", appConfig.getAccuWeatherImageFetchUrl(), ConstHelper.ACCU_WEATHER_API_IMAGES_LOCATION),
                 String.format("%02d", Integer.parseInt(imgId)));
     }
 }

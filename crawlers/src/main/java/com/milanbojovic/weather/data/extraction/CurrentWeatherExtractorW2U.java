@@ -83,6 +83,7 @@ public class CurrentWeatherExtractorW2U implements CurrentWeatherExtractor {
         int year = Integer.parseInt(split[split.length -1]);
         int month = Util.monthNumberMap.get(split[split.length - 3].toLowerCase());
         int day = Integer.parseInt(StringUtils.remove(split[split.length -2],"."));
-        return Util.formatDate(year, month, day);
+        String date = Util.formatDate(year, month, day);
+        return getDayFromDateString(date) + " - " + date;
     }
 }

@@ -12,18 +12,19 @@ import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.milanbojovic.weather.config.AppConfig;
 import com.milanbojovic.weather.data.model.WeatherData;
 import com.milanbojovic.weather.service.AccuWeatherService;
 import com.milanbojovic.weather.service.RhmzService;
 import com.milanbojovic.weather.service.Weather2UmbrellaService;
 import com.milanbojovic.weather.service.WeatherProvider;
-import com.milanbojovic.weather.util.ConstHelper;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.URLDecoder;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,24 +33,30 @@ import java.util.stream.StreamSupport;
 
 import static akka.http.javadsl.server.Directives.*;
 
+@RestController
 public class Server {
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
     private final RhmzService rhmzService;
-    private final AccuWeatherService accuSource;
-    private final Weather2UmbrellaService w2uSource;
+    private final Weather2UmbrellaService weather2UmbrellaService;
+    private final AccuWeatherService accuWeatherService;
+    private final AppConfig appConfig;
 
-    public Server(List<String> citiesList) throws IOException {
+    @Autowired
+    public Server(AccuWeatherService accuWeatherService, RhmzService rhmzService, Weather2UmbrellaService weather2UmbrellaService, AppConfig appConfig) throws IOException {
         LOGGER.debug("Creating ActorSystem.");
+        this.accuWeatherService = accuWeatherService;
+        this.rhmzService = rhmzService;
+        this.weather2UmbrellaService = weather2UmbrellaService;
+        this.appConfig = appConfig;
+
         ActorSystem system = ActorSystem.create("routes");
         final Http http = Http.get(system);
 
-        rhmzService = new RhmzService(citiesList);
-        accuSource = new AccuWeatherService(citiesList);
-        w2uSource = new Weather2UmbrellaService(citiesList);
-
         final CompletionStage<ServerBinding> binding = startHttpServer(http);
 
-        LOGGER.info("Akka HTTP Server online at http://" + ConstHelper.SERVER_HOST + ":" + ConstHelper.SERVER_PORT);
+        LOGGER.info(MessageFormat.format("Akka HTTP Server online at http://{0}:{1}",
+                appConfig.getServerUrl(),
+                appConfig.getServerPort()));
         LOGGER.info("Press RETURN to stop...");
         System.in.read();
 
@@ -66,7 +73,7 @@ public class Server {
 
     private CompletionStage<ServerBinding> startHttpServer(Http http) {
         LOGGER.debug("Starting Akka HTTP Server");
-        return http.newServerAt(ConstHelper.SERVER_HOST, ConstHelper.SERVER_PORT)
+        return http.newServerAt(appConfig.getServerUrl(), Integer.parseInt(appConfig.getServerPort()))
                 .bind(createRoutes());
     }
 
@@ -95,7 +102,7 @@ public class Server {
 
     private Route createRhmzRoute() {
         return concat(
-                pathPrefix(PathMatchers.segment("rhmz").slash(), () ->
+                pathPrefix(PathMatchers.segment(appConfig.getServerRouteRhmz()).slash(), () ->
                     extractUnmatchedPath(city -> getAllWeatherDataFrom(rhmzService, city))
                 )
         );
@@ -103,24 +110,24 @@ public class Server {
 
     private Route createW2uRoute() {
         return concat(
-                pathPrefix(PathMatchers.segment("w2u").slash(), () ->
-                        extractUnmatchedPath(city -> getAllWeatherDataFrom(w2uSource, city))
+                pathPrefix(PathMatchers.segment(appConfig.getServerRouteW2u()).slash(), () ->
+                        extractUnmatchedPath(city -> getAllWeatherDataFrom(weather2UmbrellaService, city))
                 )
         );
     }
 
     private Route createAccuRoute() {
         return concat(
-                pathPrefix(PathMatchers.segment("accu").slash(), () ->
-                        extractUnmatchedPath(city -> getAllWeatherDataFrom(accuSource, city))
+                pathPrefix(PathMatchers.segment(appConfig.getServerRouteAccu()).slash(), () ->
+                        extractUnmatchedPath(city -> getAllWeatherDataFrom(accuWeatherService, city))
                 )
         );
     }
 
     private Route getAllWeatherDataFrom(WeatherProvider source, String city) {
-        LOGGER.debug("Getting all weather data for source: %s, city: %s", city);
-        String cityDecoded = URLDecoder.decode(StringUtils.capitalize(city));
-        WeatherData cityWeather = source.provideWeather(city);
+        city = city.toLowerCase();
+        LOGGER.debug(String.format("Getting all weather data for city - %s", city));
+        WeatherData cityWeather = source.fetchPersistedWeatherData(city);
         try {
             return complete(new ObjectMapper().writeValueAsString(cityWeather));
         } catch (JsonProcessingException e) {
