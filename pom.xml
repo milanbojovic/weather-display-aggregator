@@ -11,7 +11,7 @@
 
     <modules>
         <module>docker</module>
-        <module>cyrillic-latin-convertor</module>
+        <module>cyrillic-latin-converter</module>
         <module>weather-display-gui</module>
         <module>weather-display-backend</module>
     </modules>

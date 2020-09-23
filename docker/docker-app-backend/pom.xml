@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>docker-app-backend</artifactId>
+    <properties>
+        <weather-display-backend.artifactId>weather-display-backend</weather-display-backend.artifactId>
+    </properties>
+
+    <parent>
+        <artifactId>docker</artifactId>
+        <groupId>com.milanbojovic</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.milanbojovic</groupId>
+            <artifactId>${weather-display-backend.artifactId}</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.26.0</version>
+                <configuration>
+                    <!--<skip>true</skip>-->
+                    <images>
+                        <image>
+                            <alias>${project.artifactId}</alias>
+                            <name>${project.artifactId}:${project.version}</name>
+                            <build>
+                                <tags combine.children="append">
+                                    <tag>latest</tag>
+                                </tags>
+                                <from>azul/zulu-openjdk:11</from>
+                                <optimise>true</optimise>
+                                <assembly>
+                                    <name>${project.artifactId}</name>
+                                    <descriptor>assembly.xml</descriptor>
+                                </assembly>
+                                <volumes>
+                                    <volume>/${project.artifactId}/conf</volume>
+                                </volumes>
+                                <!--suppress MavenModelInspection -->
+                                <cmd>
+                                    java -jar /${project.artifactId}/lib/${weather-display-backend.artifactId}-1.0-SNAPSHOT.jar
+                                </cmd>
+                            </build>
+                            <run>
+                                <ports>
+                                    <port>8080:8080</port>
+                                    <port>27017:27017</port>
+                                </ports>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-docker-img</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>push-docker-img</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                    </execution>
+<!--                    <execution>-->
+<!--                        <id>prepare-integration-test-environment</id>-->
+<!--                        <phase>pre-integration-test</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>start</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                    <execution>-->
+<!--                        <id>cleanup-integration-test-environment</id>-->
+<!--                        <phase>post-integration-test</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>stop</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
