@@ -13,7 +13,7 @@
     </parent>
 
     <modules>
-        <module>docker-app</module>
-        <module>docker-run</module>
+        <module>docker-app-backend</module>
+        <module>docker-app-frontend</module>
     </modules>
 </project>

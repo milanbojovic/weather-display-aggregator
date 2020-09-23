@@ -60,11 +60,6 @@ public class Server {
         LOGGER.info(MessageFormat.format("Akka HTTP Server online at http://{0}:{1}",
                 appConfig.getServerUrl(),
                 appConfig.getServerPort()));
-        LOGGER.info("Press RETURN to stop...");
-        System.in.read();
-
-        stopHttpServer(system, binding);
-        LOGGER.info("Akka HTTP Server - stopped");
     }
 
     private void stopHttpServer(ActorSystem system, CompletionStage<ServerBinding> binding) {
