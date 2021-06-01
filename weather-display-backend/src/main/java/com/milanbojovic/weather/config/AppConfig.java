@@ -5,7 +5,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -41,7 +41,7 @@ public class AppConfig {
     private String mongoConnectionUrl = "mongodb://localhost:27017";
 
     //OTHER
-    private List<Integer> citiesLocationIds = Arrays.asList(298198);
+    private List<Integer> citiesLocationIds = Collections.singletonList(298198);
     private String accuWeatherApiKey = "no default key";
-    private List<String> cities = Arrays.asList("Beograd");
+    private List<String> cities = Collections.singletonList("Beograd");
 }

@@ -43,25 +43,25 @@ public class CurrentWeatherParserRhm implements CurrentWeatherParser {
 
     @Override
     public double getTemp(Element cityElement) {
-        String temperature = getColumnValue(cityElement, CurrentWeatherColumnsEnum.TEMPERATURE);
+        var temperature = getColumnValue(cityElement, CurrentWeatherColumnsEnum.TEMPERATURE);
         return parseDouble(temperature);
     }
 
     @Override
     public double getRealFeel(Element cityElement) {
-        String realFeel = getColumnValue(cityElement, CurrentWeatherColumnsEnum.REAL_FEEL);
+        var realFeel = getColumnValue(cityElement, CurrentWeatherColumnsEnum.REAL_FEEL);
         return parseDouble(realFeel);
     }
 
     @Override
     public int getHumidity(Element cityElement) {
-        String humidity = getColumnValue(cityElement, CurrentWeatherColumnsEnum.HUMIDITY);
+        var humidity = getColumnValue(cityElement, CurrentWeatherColumnsEnum.HUMIDITY);
         return Integer.parseInt(humidity);
     }
 
     @Override
     public double getPressure(Element cityElement) {
-        String pressure = getColumnValue(cityElement, CurrentWeatherColumnsEnum.PRESSURE);
+        var pressure = getColumnValue(cityElement, CurrentWeatherColumnsEnum.PRESSURE);
         return parseDouble(pressure);
 
     }
@@ -86,21 +86,12 @@ public class CurrentWeatherParserRhm implements CurrentWeatherParser {
 
     @Override
     public double getUvIndex(Element cityElement) {
-//        Element uvElem = getUvIndexWeatherFor(city);
-//        return uvElem == null ? 0 : parseDouble(uvElem.child(1).text());
         return 0;
     }
 
-//    private Element getUvIndexWeatherFor(String city) {
-//        LOGGER.debug(format("Fetching UV index data for %s", city));
-//        Document uvIndexDoc = documents.get(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_UV_INDEX);
-//        Elements uvIndexTable = getUvIndexForAllCities(uvIndexDoc);
-//        return findCity(uvIndexTable, city);
-//    }
-
     @Override
     public String getImageUrl(Element cityElement) {
-        String imgUrl = cityElement
+        var imgUrl = cityElement
                 .child(CurrentWeatherColumnsEnum.IMAGE.ordinal())
                 .childNode(1)
                 .attr("src");
@@ -118,32 +109,14 @@ public class CurrentWeatherParserRhm implements CurrentWeatherParser {
     }
 
     public String getDate(String dateHeader) {
-        String dateStr = dateHeader.split(" ")[6];
-        String[] split = dateStr.split("\\.");
-        int year = Integer.parseInt(split[2]);
-        int month = Integer.parseInt(split[1]);
-        int day = Integer.parseInt(split[0]);
-        String date = Util.formatDate(year, month, day);
+        var dateStr = dateHeader.split(" ")[6];
+        var split = dateStr.split("\\.");
+        var year = Integer.parseInt(split[2]);
+        var month = Integer.parseInt(split[1]);
+        var day = Integer.parseInt(split[0]);
+        var date = Util.formatDate(year, month, day);
         return getDayFromDateString(date) + " - " + date;
     }
-
-    //TODOO
-    /*
-    @Override
-    public String getCurrentDate(String city) {
-        String heading = documents.get(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_CURRENT_WEATHER)
-                .getElementById("sadrzaj")
-                .getElementsByTag("h1").get(0)
-                .text();
-        String dateStr = heading.split(" ")[6];
-        String[] split = dateStr.split("\\.");
-        int year = Integer.parseInt(split[2]);
-        int month = Integer.parseInt(split[1]);
-        int day = Integer.parseInt(split[0]);
-        return Util.formatDate(year, month, day);
-    }
-    * */
-
 
     private String getColumnValue(Element city, CurrentWeatherColumnsEnum column) {
         return city.child(column.ordinal()).text();

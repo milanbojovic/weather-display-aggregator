@@ -4,7 +4,6 @@ import com.milanbojovic.weather.data.model.CurrentWeather;
 import com.milanbojovic.weather.data.model.DailyForecast;
 import com.milanbojovic.weather.data.model.WeatherData;
 import com.milanbojovic.weather.service.persistance.MongoDao;
-import com.mongodb.MongoClient;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -31,7 +30,7 @@ public interface WeatherProvider {
     }
 
     default void persistWeatherDataToDb(MongoDao mongoDao, List<String> citiesList, String provider) {
-        List<WeatherData> weatherDataAllCities = citiesList.stream()
+        var weatherDataAllCities = citiesList.stream()
                 .map(this::provideWeather)
                 .collect(Collectors.toList());
         mongoDao.writeWeatherData(weatherDataAllCities, provider);

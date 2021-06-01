@@ -30,8 +30,8 @@ import static java.lang.String.format;
 @Service
 public class RhmzService implements WeatherProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(RhmzService.class);
+    public static final String MSG_FORMAT = "{0}{1}";
     private final AppConfig appConfig;
-    private final MongoDao mongoDao;
     public final String prividerName;
     private final Map<String, Document> documents;
 
@@ -39,10 +39,9 @@ public class RhmzService implements WeatherProvider {
     public RhmzService(AppConfig appConfig, MongoDao mongoDao) {
         LOGGER.info("Creating Rhmz Source");
         this.appConfig = appConfig;
-        this.mongoDao = mongoDao;
         prividerName = "RHMZ";
-        HtmlClient connectionClient = new HtmlClient();
-        List<String> citiesList = appConfig.getCities();
+        var connectionClient = new HtmlClient();
+        var citiesList = appConfig.getCities();
 
         documents = createUriList(citiesList).stream()
                 .map(connectionClient::provideStringDocumentPair)
@@ -73,9 +72,9 @@ public class RhmzService implements WeatherProvider {
     @Override
     public CurrentWeather provideCurrentWeather(String city) {
         LOGGER.debug(String.format("Initializing current weather data for source=[%s], City=[%s]", prividerName, city));
-        Element currentWeatherFor = getCurrentWeatherFor(city);
-        String dateLine = getCurrentDateFor(city);
-        CurrentWeatherParserRhm currentWeatherExtractorRhm = new CurrentWeatherParserRhm(currentWeatherFor, dateLine, appConfig);
+        var currentWeatherFor = getCurrentWeatherFor(city);
+        var dateLine = getCurrentDateFor(city);
+        var currentWeatherExtractorRhm = new CurrentWeatherParserRhm(currentWeatherFor, dateLine, appConfig);
         return currentWeatherExtractorRhm.extract();
     }
 
@@ -92,8 +91,8 @@ public class RhmzService implements WeatherProvider {
     private Element getCurrentWeatherFor(String city) {
         LOGGER.debug(MessageFormat.format("Fetching current weather data for {0}", city));
 
-        Document currentWeather = documents.get(appConfig.getRhmzUrl() + ConstHelper.RHMZ_URI_PATH + appConfig.getRhmzCurrentWeather());
-        Elements citiesTable = getCurrentWeatherForAllCities(currentWeather);
+        var currentWeather = documents.get(appConfig.getRhmzUrl() + ConstHelper.RHMZ_URI_PATH + appConfig.getRhmzCurrentWeather());
+        var citiesTable = getCurrentWeatherForAllCities(currentWeather);
         return findCity(citiesTable, city);
     }
 
@@ -103,17 +102,6 @@ public class RhmzService implements WeatherProvider {
                 .getElementById("sadrzaj")
                 .getElementsByTag("h1").get(0)
                 .text();
-    }
-
-
-    private Element getFiveDayWeatherFor(String city) {
-        LOGGER.debug(format("Fetching weekly weather data for %s", city));
-        Document weeklyForecast = documents.get(format(MessageFormat.format("{0}{1}",
-                ConstHelper.RHMZ_URI_PATH,
-                appConfig.getRhmzWeeklyForecast()),
-                city));
-        Elements citiesTable = getDailyForecastForCityTable(weeklyForecast);
-        return findCity(citiesTable, city);
     }
 
     protected List<DailyForecast> initializeDailyForecast(String city) {
@@ -134,18 +122,18 @@ public class RhmzService implements WeatherProvider {
         });
 
         LOGGER.debug(format("Initializing weather data for %s.", prividerName));
-        Elements weeklyForecast = getWeeklyForecast(city);
+        var weeklyForecast = getWeeklyForecast(city);
 
-        for(int i = 0; i < weeklyForecast.size(); i++) {
-            Element rowElement = weeklyForecast.get(i);
-            Elements columnElements = rowElement.children();
-            for(int j = 2; j < rowElement.children().size() - 2; j++) {
-                Element currentElement = columnElements.get(j);
-                DailyForecast dailyForecast = resultList.get(j - 1);
+        for(var i = 0; i < weeklyForecast.size(); i++) {
+            var rowElement = weeklyForecast.get(i);
+            var columnElements = rowElement.children();
+            for(var j = 2; j < rowElement.children().size() - 2; j++) {
+                var currentElement = columnElements.get(j);
+                var dailyForecast = resultList.get(j - 1);
                 if (i == 0) dailyForecast.setMaxTemp(getDoubleVal(currentElement));
                 if (i == 1) dailyForecast.setMinTemp(getDoubleVal(currentElement));
                 if (i == 2) {
-                    String imgUrl = currentElement.child(0).attr("src");
+                    var imgUrl = currentElement.child(0).attr("src");
                     dailyForecast.setImageUrl(appConfig.getRhmzUrl() + "/repository" + imgUrl.split("repository")[1]);
                 }
                 dailyForecast.setDescription("N/A");
@@ -154,14 +142,14 @@ public class RhmzService implements WeatherProvider {
         }
 
         //Set day/date
-        Document weeklyForecastDoc = documents.get(
+        var weeklyForecastDoc = documents.get(
                 appConfig.getRhmzUrl() +
-                format(MessageFormat.format("{0}{1}",
+                format(MessageFormat.format(MSG_FORMAT,
                         ConstHelper.RHMZ_URI_PATH,
                         appConfig.getRhmzWeeklyForecast()),
                         Util.rhmzLocationIdMap.get(city)));
 
-        Elements headColumns = weeklyForecastDoc.getElementsByAttributeValue(ConstHelper.W2U_SUMMARY, ConstHelper.RHMZ_FIVE_DAY_FORECAST_ALL_CITIES_TABLE)
+        var headColumns = weeklyForecastDoc.getElementsByAttributeValue(ConstHelper.W2U_SUMMARY, ConstHelper.RHMZ_FIVE_DAY_FORECAST_ALL_CITIES_TABLE)
                 .get(0)
                 .getElementsByTag(ConstHelper.RHMZ_TAG_THEAD)
                 .get(0)
@@ -169,13 +157,13 @@ public class RhmzService implements WeatherProvider {
                 .get(0)
                 .children();
 
-        for(int i = 2; i < headColumns.size() - 2; i++) {
-            DailyForecast dailyForecast = resultList.get(i-1);
-            String rawDay = headColumns.get(i).text().split(" ")[0];
+        for(var i = 2; i < headColumns.size() - 2; i++) {
+            var dailyForecast = resultList.get(i-1);
+            var rawDay = headColumns.get(i).text().split(" ")[0];
 
-            int day = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[0]);
-            int month = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[1]);
-            int year = Calendar.getInstance().get(Calendar.YEAR);
+            var day = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[0]);
+            var month = Integer.parseInt(headColumns.get(i).text().split(" ")[1].split("\\.")[1]);
+            var year = Calendar.getInstance().get(Calendar.YEAR);
             dailyForecast.setDate(StringUtils.capitalize(rawDay.toLowerCase()) + " - " + Util.formatDate(year, month, day));
         }
         return resultList;
@@ -184,7 +172,7 @@ public class RhmzService implements WeatherProvider {
     private double getDoubleVal(Element element) {
         double value = 0;
         try{
-            String getElementTextValue = element.text();
+            var getElementTextValue = element.text();
             value = parseDouble(getElementTextValue);
         } catch (NumberFormatException ex) {
             LOGGER.error(MessageFormat.format("Error while parsing double value for element {0}", element));
@@ -206,30 +194,23 @@ public class RhmzService implements WeatherProvider {
 
     protected Elements getWeeklyForecast(String city) {
         LOGGER.debug(format("Fetching weekly weather data for %s", city));
-        Document weeklyForecast = documents.get(
+        var weeklyForecast = documents.get(
                 appConfig.getRhmzUrl() +
-                format(MessageFormat.format("{0}{1}",
+                format(MessageFormat.format(MSG_FORMAT,
                         ConstHelper.RHMZ_URI_PATH,
                         appConfig.getRhmzWeeklyForecast()),
                         Util.rhmzLocationIdMap.get(city)));
         return getDailyForecastForCityTable(weeklyForecast);
     }
 
-    private Element getUvIndexWeatherFor(String city) {
-        LOGGER.debug(format("Fetching UV index data for %s", city));
-        Document uvIndexDoc = documents.get(ConstHelper.RHMZ_URI_PATH + ConstHelper.RHMZ_URI_UV_INDEX);
-        Elements uvIndexTable = getUvIndexForAllCities(uvIndexDoc);
-        return findCity(uvIndexTable, city);
-    }
-
     private Element findCity(Elements citiesTable, String city) {
-        final String cityTranslation = CyrillicLatinConverter.latinToCyrillic(city);
-        List<Element> collect = citiesTable.stream()
-                .filter(element -> getColumnValue(element, CurrentWeatherColumnsEnum.CITY).equalsIgnoreCase(cityTranslation))
+        final var cityTranslation = CyrillicLatinConverter.latinToCyrillic(city);
+        var collect = citiesTable.stream()
+                .filter(element -> getColumnValue(element).equalsIgnoreCase(cityTranslation))
                 .collect(Collectors.toList());
         return collect.isEmpty()? null : collect.get(0);
     }
-//
+
     private Elements getCurrentWeatherForAllCities(Document currentWeather) {
         return currentWeather
                 .getElementsByAttributeValue(ConstHelper.W2U_SUMMARY, ConstHelper.RHMZ_CURRENT_WEATHER_ALL_CITIES_TABLE)
@@ -238,24 +219,7 @@ public class RhmzService implements WeatherProvider {
                 .children();
     }
 
-    private String getColumnValue(Element city, CurrentWeatherColumnsEnum column) {
-        return city.child(column.ordinal()).text();
-    }
-
-    private Elements getUvIndexForAllCities(Document currentWeather) {
-        return currentWeather
-                .getElementById("slika_pracenje")
-                .getElementsByTag(ConstHelper.RHMZ_TAG_TBODY).get(0)
-                .children();
-    }
-
-    public String getForecastedDate(String city) {
-        Element citiesFiveDayTable = getFiveDayWeatherFor(city);
-        String h1 = citiesFiveDayTable.getElementsByTag("h1").text();
-        String date = h1.split(" ")[h1.split(" ").length - 1].trim();
-        int day = Integer.parseInt(date.substring(0,2));
-        int month = Integer.parseInt(date.substring(3,5));
-        int year = Integer.parseInt(date.substring(6,10));
-        return Util.formatDate(year, month, day);
+    private String getColumnValue(Element city) {
+        return city.child(CurrentWeatherColumnsEnum.CITY.ordinal()).text();
     }
 }

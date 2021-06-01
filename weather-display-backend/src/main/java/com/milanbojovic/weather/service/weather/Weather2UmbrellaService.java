@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 @Service
 public class Weather2UmbrellaService implements WeatherProvider {
     private final AppConfig appConfig;
-    private final MongoDao mongoDao;
     private static final Logger LOGGER = LoggerFactory.getLogger(Weather2UmbrellaService.class);
     private final String providerName;
     private final Map<String, Document> documents;
@@ -33,11 +32,10 @@ public class Weather2UmbrellaService implements WeatherProvider {
     @Autowired
     public Weather2UmbrellaService(AppConfig appConfig, MongoDao mongoDao) {
         this.appConfig = appConfig;
-        this.mongoDao = mongoDao;
         providerName = "W2UM";
         LOGGER.info("Creating Weather2Umbrella Source");
-        HtmlClient connectionClient = new HtmlClient();
-        List<String> citiesList = appConfig.getCities();
+        var connectionClient = new HtmlClient();
+        var citiesList = appConfig.getCities();
 
         documents = citiesList.stream()
                 .map(String::toLowerCase)
@@ -59,17 +57,17 @@ public class Weather2UmbrellaService implements WeatherProvider {
     @Override
     public CurrentWeather provideCurrentWeather(String city) {
         LOGGER.debug(String.format("Initializing current weather data for source=[%s], City=[%s]", providerName, city));
-        String queryCityUrl = queryCityUrl(city, appConfig.getW2uCurrentWeather());
-        Document cityDoc = documents.get(queryCityUrl);
-        CurrentWeatherParserW2U currentWeatherExtractorW2u = new CurrentWeatherParserW2U(cityDoc);
+        var queryCityUrl = queryCityUrl(city, appConfig.getW2uCurrentWeather());
+        var cityDoc = documents.get(queryCityUrl);
+        var currentWeatherExtractorW2u = new CurrentWeatherParserW2U(cityDoc);
         return currentWeatherExtractorW2u.extract();
     }
 
     @Override
     public List<DailyForecast> provideWeeklyForecast(String city) {
         LOGGER.debug(String.format("Initializing weather forecast for %s.", providerName));
-        String queryCityUrl = queryCityUrl(city, appConfig.getW2uWeeklyForecast());
-        Document weeklyForecastDocument = documents.get(queryCityUrl);
+        var queryCityUrl = queryCityUrl(city, appConfig.getW2uWeeklyForecast());
+        var weeklyForecastDocument = documents.get(queryCityUrl);
         return weeklyForecastDocument.getElementsByClass("day_wrap")
                 .stream()
                 .limit(5)
@@ -83,8 +81,8 @@ public class Weather2UmbrellaService implements WeatherProvider {
     }
 
     private DailyForecast maptoDailyForecast(Element dailyForecast) {
-        DailyForecastParserW2U dailyForecastExtractorW2u = new DailyForecastParserW2U(dailyForecast);
-        DailyForecast extractedDailyForecast = dailyForecastExtractorW2u.extract();
+        var dailyForecastExtractorW2u = new DailyForecastParserW2U(dailyForecast);
+        var extractedDailyForecast = dailyForecastExtractorW2u.extract();
         extractedDailyForecast.setProvider(providerName);
         return dailyForecastExtractorW2u.extract();
     }

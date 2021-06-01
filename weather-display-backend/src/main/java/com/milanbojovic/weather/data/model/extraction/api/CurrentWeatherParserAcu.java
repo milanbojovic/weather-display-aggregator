@@ -60,7 +60,7 @@ public class CurrentWeatherParserAcu implements CurrentWeatherParser {
 
     @Override
     public String getImageUrl(String city) {
-        String imgId = JsonPath.read(city, "$[0].WeatherIcon").toString();
+        var imgId = JsonPath.read(city, "$[0].WeatherIcon").toString();
         return assembleAccuWeatherImageUrl(imgId);
     }
 
@@ -72,7 +72,7 @@ public class CurrentWeatherParserAcu implements CurrentWeatherParser {
     
     @Override
     public String getDescription(String city) {
-                String latinString = JsonPath.read(city, "$[0].WeatherText");
+                var latinString = (String)JsonPath.read(city, "$[0].WeatherText");
         return CyrillicLatinConverter.latinToCyrillic(latinString);
     }
 

@@ -1,8 +1,7 @@
 package com.milanbojovic.weather.data.model.extraction.html.interfaces;
 
-import com.milanbojovic.weather.data.model.extraction.DataParser;
 import com.milanbojovic.weather.data.model.CurrentWeather;
-import com.milanbojovic.weather.util.Util;
+import com.milanbojovic.weather.data.model.extraction.DataParser;
 import org.jsoup.nodes.Element;
 
 
@@ -21,14 +20,6 @@ public interface CurrentWeatherParser extends DataParser {
                 .description(getDescription(doc))
                 .date(getDate(doc))
                 .build();
-    }
-
-    default String toDate(String dateStr) {
-        String[] dateArr = dateStr.split("T")[0].split("-");
-        int year = Integer.parseInt(dateArr[0]);
-        int month = Integer.parseInt(dateArr[1]);
-        int day = Integer.parseInt(dateArr[2]);
-        return Util.formatDate(year, month, day);
     }
 
     double getTemp(Element doc);

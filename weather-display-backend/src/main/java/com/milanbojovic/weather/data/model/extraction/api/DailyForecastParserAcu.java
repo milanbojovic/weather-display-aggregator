@@ -63,7 +63,7 @@ public class DailyForecastParserAcu implements DailyForecastParser {
 
     @Override
     public String getDescription(String city) {
-        String latinString = JsonPath.read(city, "$.Day.IconPhrase");
+        var latinString = (String)JsonPath.read(city, "$.Day.IconPhrase");
         return CyrillicLatinConverter.latinToCyrillic(latinString);
     }
 
@@ -75,7 +75,7 @@ public class DailyForecastParserAcu implements DailyForecastParser {
 
     @Override
     public String getImageUrl(String city) {
-        String imgId = JsonPath.read(city, "$.Day.Icon").toString();
+        var imgId = JsonPath.read(city, "$.Day.Icon").toString();
         return assembleAccuWeatherImageUrl(imgId);
     }
 

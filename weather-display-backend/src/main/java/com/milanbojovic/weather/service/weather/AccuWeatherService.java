@@ -35,16 +35,14 @@ import java.util.stream.Collectors;
 public class AccuWeatherService implements WeatherProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccuWeatherService.class);
     private final AppConfig appConfig;
-    private final MongoDao mongoDao;
     private final String providerName;
     private final Map<String, String> documents;
 
     @Autowired
     public AccuWeatherService(AppConfig appConfig, MongoDao mongoDao) {
         LOGGER.info("Creating AccuWeather Source");
-        ApiClient connectionClient = new ApiClient();
+        var connectionClient = new ApiClient();
         this.appConfig = appConfig;
-        this.mongoDao = mongoDao;
         providerName = "ACCU";
 
         List<String> citiesList = appConfig.getCities();
@@ -60,8 +58,8 @@ public class AccuWeatherService implements WeatherProvider {
     @Override
     public CurrentWeather provideCurrentWeather(String city) {
         LOGGER.debug(String.format("Initializing current weather data for source=[%s], City=[%s]", providerName, city));
-        String cityJson = documents.get(queryCityUrl(city, appConfig.getAccuWeatherCurrentWeather()));
-        CurrentWeatherParserAcu currentWeatherExtractorAcu = new CurrentWeatherParserAcu(cityJson, appConfig);
+        var cityJson = documents.get(queryCityUrl(city, appConfig.getAccuWeatherCurrentWeather()));
+        var currentWeatherExtractorAcu = new CurrentWeatherParserAcu(cityJson, appConfig);
         return currentWeatherExtractorAcu.extract();
     }
 
@@ -72,8 +70,8 @@ public class AccuWeatherService implements WeatherProvider {
     @Override
     public List<DailyForecast> provideWeeklyForecast(String city) {
         LOGGER.debug(String.format("Initializing forecasted weather forecast for %s.", providerName));
-        String query = queryCityUrl(city, appConfig.getAccuWeatherWeeklyForecast());
-        String weeklyForecastDocJson = documents.get(query);
+        var query = queryCityUrl(city, appConfig.getAccuWeatherWeeklyForecast());
+        var weeklyForecastDocJson = documents.get(query);
         List<Map<String, Object>> weeklyForecastsStr = JsonPath.read(weeklyForecastDocJson, "$.DailyForecasts");
 
         return weeklyForecastsStr.stream()
@@ -88,8 +86,8 @@ public class AccuWeatherService implements WeatherProvider {
     }
 
     private DailyForecast mapToDailyForecast(String dailyForecast) {
-        DailyForecastParserAcu dailyForecastExtractorAcu = new DailyForecastParserAcu(dailyForecast, appConfig);
-        DailyForecast extractedDailyForecast = dailyForecastExtractorAcu.extract();
+        var dailyForecastExtractorAcu = new DailyForecastParserAcu(dailyForecast, appConfig);
+        var extractedDailyForecast = dailyForecastExtractorAcu.extract();
         extractedDailyForecast.setProvider(providerName);
         return extractedDailyForecast;
     }
@@ -130,7 +128,7 @@ public class AccuWeatherService implements WeatherProvider {
     }
 
     private String mapToJson(Map<String, Object> map) {
-        StringWriter out = new StringWriter();
+        var out = new StringWriter();
         try {
             JSONValue.writeJSONString(map, out);
         } catch (IOException e) {

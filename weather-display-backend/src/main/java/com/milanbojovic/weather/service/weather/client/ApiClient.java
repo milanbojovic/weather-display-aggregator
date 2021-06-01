@@ -24,7 +24,8 @@ public class ApiClient {
             LOGGER.debug(String.format("Executing API request: %s", request.toString()));
             response = Optional.of(httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
         } catch (Exception e) {
-            LOGGER.error("Error occured while executing http request.", e);
+            LOGGER.error("Error occurred while executing http request.", e);
+            Thread.currentThread().interrupt();
         }
         return getResponseString(response);
     }
